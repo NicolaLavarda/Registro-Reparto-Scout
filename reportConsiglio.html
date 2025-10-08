@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            background-color: #f7f7f7;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        h2 {
+            font-size: 1.5em;
+            margin-top: 0;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+            color: #444;
+        }
+        h3 {
+            margin-left: 0;
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 15px;
+        }
+        /* Rimuove lo stile di default solo per la lista principale, non per quelle nel report */
+        body > .container > .card > ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        /* Stile per gli elenchi puntati degli interventi all'interno delle card del report */
+        #contenuto .card ul {
+            list-style-type: disc; /* Aggiunge i pallini */
+            padding-left: 25px;    /* Aggiunge indentazione */
+            margin-top: 5px;
+        }
+
+        /* Aggiunge spazio tra la casella di ricerca e i pulsanti */
+        #selezione input[list] {
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+            padding-left: 5px;
+        }
+        #dataConsiglio {
+            text-align: center;
+            font-size: 1em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        #selezione {
+            text-align: center;
+        }
+        input[type="text"],
+        input[list] {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: 'Inter', sans-serif;
+            font-size: 1em;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus,
+        input[list]:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 1em;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            color: white;
+            background-color: #4CAF50;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+        .status-message {
+            font-weight: 700;
+            display: none;
+            text-align: center;
+            margin-top: 8px;
+        }
+        .no-data {
+            font-style: italic;
+            color: #888;
+            padding-left: 5px;
+        }
+        .report-display {
+            display: none;
+        }
+
+        /* --- STILI COPIATI DA reportRagazzo.html --- */
+        #modeSwitcher {
+            display: none; /* Inizialmente nascosto */
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .mode-button {
+            background-color: #f0f0f0;
+            color: #555;
+            border: 1px solid #ccc;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            border-radius: 0; /* Rimuoviamo il border radius di default */
+            margin: 0; /* Rimuoviamo il margine di default */
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+        .mode-button:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+        .mode-button:last-child {
+            border-radius: 0 8px 8px 0;
+            margin-left: -1px; /* Sovrappone i bordi */
+        }
+        .mode-button.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        .icon.edit, .icon.delete {
+            display: none; /* Nascoste di default */
+            cursor: pointer;
+            color: #999;
+            font-size: 1.2em;
+            vertical-align: middle;
+            transition: color 0.2s;
+            margin-left: 8px;
+        }
+        .icon:hover {
+            color: #4CAF50;
+        }
+        .icon.delete:hover {
+            color: #f44336;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center; /* Centra verticalmente */
+            gap: 10px; /* Aggiunge spazio */
+        }
+        .item-text {
+            flex-grow: 1;
+            word-break: break-word;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Nuovo selettore di modalità -->
+        <div id="modeSwitcher">
+            <button id="viewBtn" class="mode-button active">VISUALIZZA</button>
+            <button id="editBtn" class="mode-button">MODIFICA</button>
+        </div>
+
+        <div id="reportDisplayArea" class="report-display">
+            <h1 id="titoloConsiglio"></h1>
+            <div id="dataConsiglio"></div>
+            <div id="contenuto"></div>
+        </div>
+
+        <div class="card" id="selezione">
+            <p>Seleziona Consiglio:</p>
+            <input list="consigliList" id="consiglioInput" placeholder="Digita nome/tema del consiglio">
+            <datalist id="consigliList"></datalist>
+            <button onclick="mostraRegistro()">Mostra</button>
+            <button onclick="esportaDocumento()">Esporta Documento</button>
+            <span id="statusMessage" class="status-message"></span>
+        </div>
+    </div>
+
+    <script>
+        let temaToId = {}; // Nuova mappa per Tema -> ID
+        const modeSwitcher = document.getElementById('modeSwitcher');
+        const viewBtn = document.getElementById('viewBtn');
+        const editBtn = document.getElementById('editBtn');
+        let currentMode = 'view';
+        let currentConsiglioId = null;
+
+        function showStatus(message, isSuccess = true) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
+            statusMessage.style.display = 'block';
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Funzione per mostrare/nascondere le icone
+        function toggleIconsVisibility() {
+            const icons = document.querySelectorAll('.icon.edit, .icon.delete');
+            icons.forEach(icon => {
+                icon.style.display = currentMode === 'edit' ? 'inline-block' : 'none';
+            });
+        }
+        
+        // Funzione per cambiare modalità
+        function toggleMode(mode) {
+            currentMode = mode;
+            viewBtn.classList.remove('active');
+            editBtn.classList.remove('active');
+            document.getElementById(mode + 'Btn').classList.add('active');
+            if (currentConsiglioId) {
+                toggleIconsVisibility();
+            }
+        }
+
+        // Popolamento iniziale della lista consigli
+        google.script.run.withSuccessHandler(function(data) {
+            const datalist = document.getElementById('consigliList');
+            datalist.innerHTML = '';
+            temaToId = {}; // Pulisce la mappa prima di riempirla
+            data.forEach(row => {
+                const id = row[0];
+                const tema = row[1] || "";
+                if (tema) {
+                    const opt = document.createElement('option');
+                    opt.value = tema; // Il valore ora è solo il tema
+                    datalist.appendChild(opt);
+                    temaToId[tema] = id; // Popola la nuova mappa
+                }
+            });
+        }).withFailureHandler(function(err) {
+            console.error('Errore getConsigliList:', err);
+            showStatus('Errore nel caricamento della lista dei consigli.', false);
+        }).getConsigliList();
+
+        function mostraRegistro(forceReload = false) {
+            let id;
+            if (forceReload) {
+              id = currentConsiglioId;
+            } else {
+              const temaSelezionato = document.getElementById('consiglioInput').value.trim();
+              if (!temaSelezionato) {
+                  showStatus("Seleziona un consiglio dalla lista!", false);
+                  return;
+              }
+              
+              id = temaToId[temaSelezionato]; // Ottiene l'ID dalla mappa usando il tema
+              if (!id) {
+                  showStatus("Consiglio non trovato! Assicurati di selezionarne uno valido.", false);
+                  return;
+              }
+              currentConsiglioId = id; // Salva l'id corrente
+            }
+
+            if (!id) return;
+
+            const mostraBtn = document.querySelector("#selezione button:first-of-type");
+            if (!forceReload) {
+              mostraBtn.disabled = true;
+              mostraBtn.textContent = 'Caricamento...';
+            }
+
+            google.script.run
+                .withSuccessHandler(function(data) {
+                    if (!forceReload) {
+                      mostraBtn.disabled = false;
+                      mostraBtn.textContent = 'Mostra';
+                    }
+                    generaReport(data);
+                    showStatus('Report caricato con successo!', true);
+                })
+                .withFailureHandler(function(err) {
+                    console.error('Errore getReportConsiglioData:', err);
+                    if (!forceReload) {
+                      mostraBtn.disabled = false;
+                      mostraBtn.textContent = 'Mostra';
+                    }
+                    showStatus('Errore nel recupero del report del consiglio.', false);
+                })
+                .getReportConsiglioData(id);
+        }
+
+        function generaReport(data) {
+            if (!data) {
+                showStatus("Errore: dati del consiglio non ricevuti!", false);
+                return;
+            }
+            
+            document.getElementById('reportDisplayArea').style.display = 'block';
+            modeSwitcher.style.display = 'flex'; // Mostra il selettore
+            
+            const contenuto = document.getElementById('contenuto');
+            contenuto.innerHTML = '';
+
+            document.getElementById('titoloConsiglio').textContent = data.titoloConsiglio;
+            document.getElementById('dataConsiglio').textContent = `Consiglio del ${data.dataConsiglio}`;
+
+            const squadriglie = data.squadriglie;
+            if (!squadriglie || Object.keys(squadriglie).length === 0) {
+                contenuto.innerHTML = "<div class='card'><p class='no-data'>Nessun intervento registrato.</p></div>";
+                return;
+            }
+
+            for (const sq in squadriglie) {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                
+                const h2 = document.createElement('h2');
+                h2.textContent = sq;
+                card.appendChild(h2);
+
+                const ragazzi = squadriglie[sq]; // ora è un array ordinato
+                ragazzi.forEach(ragazzo => {
+                    const h3 = document.createElement('h3');
+                    h3.textContent = ragazzo.nomeCompleto;
+                    card.appendChild(h3);
+
+                    const interventi = ragazzo.interventi;
+                    const ul = document.createElement('ul');
+                    if (!interventi || interventi.length === 0) {
+                        const li = document.createElement('li');
+                        li.textContent = "Nessun intervento registrato";
+                        li.classList.add('no-data');
+                        ul.appendChild(li);
+                    } else {
+                        interventi.forEach(intervento => {
+                            const editIcon = `<span class="icon edit" onclick="editIntervento('${intervento.id}')" title="Modifica intervento">&#9998;</span>`;
+                            const deleteIcon = `<span class="icon delete" onclick="deleteIntervento('${intervento.id}')" title="Elimina intervento">&#128465;</span>`;
+
+                            const li = document.createElement('li');
+                            li.innerHTML = `
+                                <div class="item-row">
+                                    <div class="item-text">${intervento.testo}</div>
+                                    <div>
+                                        ${editIcon}
+                                        ${deleteIcon}
+                                    </div>
+                                </div>`;
+                            ul.appendChild(li);
+                        });
+                    }
+                    card.appendChild(ul);
+                });
+                contenuto.appendChild(card);
+            }
+            // Applica la visibilità delle icone dopo aver generato il report
+            toggleIconsVisibility();
+        }
+
+        function editIntervento(id) {
+            google.script.run.withSuccessHandler(data => {
+                const nuovoTesto = prompt('Modifica l\'intervento:', data.intervento);
+                if (nuovoTesto !== null && nuovoTesto.trim() !== "") {
+                    google.script.run
+                        .withSuccessHandler(() => {
+                            showStatus("Intervento aggiornato con successo!");
+                            mostraRegistro(true); // ricarica il report
+                        })
+                        .withFailureHandler(err => {
+                            console.error("Errore aggiornamento intervento: ", err);
+                            showStatus("Errore nell'aggiornamento dell'intervento.", false);
+                        })
+                        .editIntervento({ id: id, intervento: nuovoTesto });
+                }
+            }).withFailureHandler(err => {
+                 console.error("Errore recupero intervento: ", err);
+                 showStatus("Errore nel recupero dei dati dell'intervento.", false);
+            }).getInterventoById(id);
+        }
+
+        function deleteIntervento(id) {
+            if (confirm("Sei sicuro di voler eliminare questo intervento?")) {
+                google.script.run
+                    .withSuccessHandler(() => {
+                        showStatus("Intervento eliminato con successo!");
+                        mostraRegistro(true); // ricarica il report
+                    })
+                    .withFailureHandler(err => {
+                        console.error("Errore eliminazione intervento: ", err);
+                        showStatus("Errore durante l'eliminazione.", false)
+                    })
+                    .deleteIntervento(id);
+            }
+        }
+
+        function esportaDocumento() {
+            const titolo = document.getElementById('titoloConsiglio').textContent;
+            if (!titolo) {
+                showStatus("Carica prima un report da esportare.", false);
+                return;
+            }
+            const data = document.getElementById('dataConsiglio').textContent;
+            
+            // Creiamo una copia del contenuto e rimuoviamo le icone
+            const contenutoNode = document.getElementById('contenuto').cloneNode(true);
+            contenutoNode.querySelectorAll('.icon.edit, .icon.delete').forEach(icon => icon.remove());
+            const contenutoHtml = contenutoNode.innerHTML;
+
+            const esportaBtn = document.querySelector("#selezione button:last-of-type");
+            esportaBtn.disabled = true;
+            esportaBtn.textContent = 'Esportazione...';
+
+            google.script.run
+                .withSuccessHandler(() => {
+                    esportaBtn.disabled = false;
+                    esportaBtn.textContent = 'Esporta Documento';
+                    showStatus("Documento creato con successo!", true);
+                })
+                .withFailureHandler(function(err) {
+                    esportaBtn.disabled = false;
+                    esportaBtn.textContent = 'Esporta Documento';
+                    console.error('Errore creaDocumentoGoogle:', err);
+                    showStatus('Errore durante l\'esportazione del documento.', false);
+                })
+                .creaDocumentoGoogle(titolo, data, contenutoHtml);
+        }
+
+        // Aggiunta listeners per i nuovi pulsanti
+        document.addEventListener('DOMContentLoaded', function() {
+            viewBtn.addEventListener('click', () => toggleMode('view'));
+            editBtn.addEventListener('click', () => toggleMode('edit'));
+        });
+
+    </script>
+</body>
+</html>
