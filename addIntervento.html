@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            background-color: #f7f7f7;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        label {
+            font-weight: 700;
+            color: #555;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: stretch;
+        }
+
+        input[type="button"] {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            color: white;
+            background-color: #4CAF50;
+            transition: background-color 0.2s, transform 0.1s;
+            /* Stili aggiunti per i pulsanti multipli come in addProva.html */
+            white-space: normal; /* permette il ritorno a capo */
+            word-wrap: break-word; /* forza l'andata a capo se necessario */
+            text-align: center; /* centra il testo anche su più righe */
+            width: 100%; /* pulsanti larghi uguali */
+            height: 50px; /* altezza fissa */
+            line-height: 1.0em; /* riduce l'interlinea per più righe */
+            overflow: hidden; /* nasconde eventuale testo in eccesso */
+        }
+
+        input[type="button"]:hover {
+            background-color: #45a049;
+            transform: translateY(-1px);
+        }
+
+        input[type="button"]:active {
+            transform: translateY(0);
+        }
+
+        input[type="button"]:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+        
+        #checkmark {
+            color: #4CAF50;
+            font-size: 24px;
+            display: none;
+            text-align: center;
+        }
+
+        .status-message {
+            color: #4CAF50; /* Aggiunto colore per coerenza con addProva.html */
+            font-weight: 700;
+            display: none;
+            text-align: center;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form id="form">
+            <label for="consiglioInput">Consiglio:</label>
+            <input type="text" id="consiglioInput" list="consigliList" placeholder="Digita e seleziona un consiglio" required>
+            <datalist id="consigliList"></datalist>
+            <input type="hidden" id="consiglioId" name="consiglio"> <label for="ragazzoInput">Ragazzo:</label>
+            <input type="text" id="ragazzoInput" list="ragazziList" placeholder="Digita e seleziona un ragazzo" required>
+            <datalist id="ragazziList"></datalist>
+            <input type="hidden" id="ragazzoId" name="ragazzo"> <label for="intervento">Intervento:</label>
+            <textarea id="intervento" name="intervento" rows="4" placeholder="Inserisci il testo dell'intervento" required></textarea> <label for="data">Data:</label>
+            <input type="date" id="data" name="data"> <div class="button-container">
+                <input type="button" id="btnNormale" value="Salva">
+                <input type="button" id="btnNuovoIntervento" value="Salva + nuovo intervento a questo consiglio">
+            </div>
+            
+            <div style="text-align: center;">
+                <span id="checkmark" style="display:none;">✔️</span>
+                <span id="statusMessage" class="status-message"></span>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const consiglioToId = {};
+        const nameToId = {};
+        const buttons = document.querySelectorAll('input[type="button"]'); // Modificato da singola variabile a selezione multipla
+
+        // Funzione per mostrare messaggi di stato
+        function showStatus(message, isSuccess = true) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
+            statusMessage.style.display = 'inline';
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        window.onload = function() {
+            // Popola datalist dei consigli
+            google.script.run.withSuccessHandler(function(data) {
+                const datalist = document.getElementById('consigliList');
+                datalist.innerHTML = '';
+                data.forEach(row => {
+                    if (row[1]) {
+                        const opt = document.createElement('option');
+                        opt.value = row[1].trim();
+                        datalist.appendChild(opt);
+                        consiglioToId[row[1].trim()] = row[0]; // mappa Tema -> ID
+                    }
+                });
+            }).getConsigliList();
+
+            // Popola datalist dei ragazzi
+            google.script.run.withSuccessHandler(function(data) {
+                const datalist = document.getElementById('ragazziList');
+                datalist.innerHTML = '';
+                data.forEach(row => {
+                    if (row[1]) {
+                        const fullName = row[1].trim();
+                        const opt = document.createElement('option');
+                        opt.value = fullName;
+                        datalist.appendChild(opt);
+                        nameToId[fullName] = row[0]; // mappa Nome -> ID
+                    }
+                });
+            }).getRagazziList();
+        };
+
+        // Aggiorna campo nascosto consiglio
+        document.getElementById('consiglioInput').addEventListener('input', function() {
+            const inputValue = this.value.trim();
+            document.getElementById('consiglioId').value = consiglioToId[inputValue] || "";
+        });
+
+        // Aggiorna campo nascosto ragazzo
+        document.getElementById('ragazzoInput').addEventListener('input', function() {
+            const inputValue = this.value.trim();
+            document.getElementById('ragazzoId').value = nameToId[inputValue] || "";
+        });
+
+        // Aggiunge i listener ai pulsanti
+        document.getElementById('btnNormale').addEventListener('click', () => salvaDati('normale'));
+        document.getElementById('btnNuovoIntervento').addEventListener('click', () => salvaDati('nuovoIntervento'));
+
+
+        function salvaDati(tipo = 'normale') { // Accetta il tipo di salvataggio come parametro
+            const formElement = document.getElementById('form');
+            buttons.forEach(b => b.disabled = true);
+
+            const consiglioId = document.getElementById('consiglioId').value;
+            const ragazzoId = document.getElementById('ragazzoId').value;
+            const interventoText = document.getElementById('intervento').value.trim();
+            const dataValue = document.getElementById('data').value;
+
+            if (!consiglioId) {
+                showStatus("Seleziona un consiglio valido dalla lista.", false);
+                buttons.forEach(b => b.disabled = false);
+                return;
+            }
+            if (!ragazzoId) {
+                showStatus("Seleziona un ragazzo valido dalla lista.", false);
+                buttons.forEach(b => b.disabled = false);
+                return;
+            }
+            if (!interventoText) {
+                showStatus("Inserisci il testo dell'intervento.", false);
+                buttons.forEach(b => b.disabled = false);
+                return;
+            }
+
+            const data = {
+                consiglio: consiglioId,
+                ragazzo: ragazzoId,
+                intervento: interventoText,
+                data: dataValue
+            };
+            
+            showStatus("Salvataggio in corso...", true);
+
+            google.script.run
+                .withSuccessHandler(function() {
+                    const checkmark = document.getElementById('checkmark');
+                    checkmark.style.display = 'inline';
+                    showStatus("Salvataggio completato!", true);
+                    
+                    setTimeout(() => {
+                        checkmark.style.display = 'none';
+                        buttons.forEach(b => b.disabled = false); // Ria abilita tutti i pulsanti
+
+                        switch (tipo) {
+                            case 'normale':
+                                formElement.reset();
+                                document.getElementById('consiglioId').value = "";
+                                document.getElementById('ragazzoId').value = "";
+                                break;
+                            case 'nuovoIntervento':
+                                // Resetta solo i campi specifici, mantenendo il Consiglio (id e testo)
+                                document.getElementById('ragazzoInput').value = "";
+                                document.getElementById('ragazzoId').value = "";
+                                document.getElementById('intervento').value = "";
+                                document.getElementById('data').value = "";
+                                break;
+                        }
+                    }, 2000);
+                })
+                .withFailureHandler(function(err) {
+                    console.error('Errore addIntervento:', err);
+                    showStatus("Errore salvataggio intervento. Controlla log.", false);
+                    buttons.forEach(b => b.disabled = false);
+                })
+                .addIntervento(data);
+        }
+    </script>
+</body>
+</html>
