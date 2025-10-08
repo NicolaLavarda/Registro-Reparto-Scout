@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            background-color: #f7f7f7;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        label {
+            font-weight: 700;
+            color: #555;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: stretch;
+        }
+
+        input[type="button"] {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            color: white;
+            background-color: #4CAF50;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        input[type="button"]:hover {
+            background-color: #45a049;
+            transform: translateY(-1px);
+        }
+
+        input[type="button"]:active {
+            transform: translateY(0);
+        }
+
+        input[type="button"]:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+        
+        #checkmark {
+            color: #4CAF50;
+            font-size: 24px;
+            display: none;
+            text-align: center;
+        }
+
+        .status-message {
+            color: #4CAF50;
+            font-weight: 700;
+            display: none;
+            text-align: center;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form id="form">
+            <label for="ragazzoInput">Ragazzo:</label>
+            <input type="text" name="ragazzoText" id="ragazzoInput" list="ragazziList" placeholder="Digita e seleziona un nome" required>
+            <datalist id="ragazziList"></datalist>
+            <input type="hidden" id="ragazzoId" name="ragazzo">
+            
+            <label for="specialitaInput">Specialità:</label>
+            <input type="text" name="specialita" id="specialitaInput" list="specialitaList" placeholder="Digita e seleziona una specialità" required>
+            <datalist id="specialitaList"></datalist>
+
+            <label for="data">Data:</label>
+            <input type="date" name="data" id="data">
+            
+            <div class="button-container">
+                <input type="button" id="saveButton" value="Salva" onclick="salvaDati()">
+            </div>
+            <div style="text-align: center;">
+                <span id="checkmark" style="display:none;">✔️</span>
+                <span id="statusMessage" class="status-message"></span>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const nameToId = {};
+        const button = document.getElementById('saveButton');
+
+        // Funzione per mostrare messaggi di stato
+        function showStatus(message, isSuccess = true) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
+            statusMessage.style.display = 'inline';
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Popola la datalist dei ragazzi
+        window.onload = function() {
+            google.script.run.withSuccessHandler(function(data) {
+                const datalist = document.getElementById('ragazziList');
+                datalist.innerHTML = '';
+                data.forEach(function(row) {
+                    let opt = document.createElement('option');
+                    opt.value = row[1];
+                    datalist.appendChild(opt);
+                    nameToId[row[1]] = row[0];
+                });
+            }).getRagazziList();
+
+            // Popola la datalist con le specialità
+            google.script.run.withSuccessHandler(function(data) {
+                const datalist = document.getElementById('specialitaList');
+                datalist.innerHTML = '';
+                data.forEach(function(s) {
+                    let opt = document.createElement('option');
+                    opt.value = s;
+                    datalist.appendChild(opt);
+                });
+            }).getSpecialitaList();
+        };
+
+        // Quando cambia il campo Ragazzo, aggiorna il campo nascosto
+        document.getElementById('ragazzoInput').addEventListener('input', function() {
+            const inputValue = this.value.trim();
+            document.getElementById('ragazzoId').value = nameToId[inputValue] || "";
+        });
+
+        function salvaDati() {
+            button.disabled = true;
+
+            const ragazzoId = document.getElementById('ragazzoId').value;
+            const specialita = document.getElementById('specialitaInput').value.trim();
+            const dataValue = document.getElementById('data').value;
+
+            if (!ragazzoId) {
+                showStatus("Seleziona un ragazzo valido dalla lista.", false);
+                button.disabled = false;
+                return;
+            }
+            if (!specialita) {
+                showStatus("Seleziona o scrivi una specialità valida.", false);
+                button.disabled = false;
+                return;
+            }
+            
+            showStatus("Verifica in corso...", true);
+
+            // Controlla lato server se la specialità è già registrata per questo ragazzo
+            google.script.run.withSuccessHandler(function(alreadyExists) {
+                if (alreadyExists) {
+                    showStatus("A questo ragazzo è già stata registrata la specialità selezionata!", false);
+                    button.disabled = false;
+                    return;
+                }
+
+                // Se non esiste, salva normalmente
+                const data = {
+                    ragazzo: ragazzoId,
+                    specialita: specialita,
+                    data: dataValue
+                };
+                
+                showStatus("Salvataggio in corso...", true);
+                
+                google.script.run.withSuccessHandler(function(){
+                    const checkmark = document.getElementById('checkmark');
+                    checkmark.style.display = 'inline';
+                    showStatus("Salvataggio completato!", true);
+                    
+                    setTimeout(() => {
+                        checkmark.style.display = 'none';
+                        button.disabled = false;
+                        document.getElementById('form').reset();
+                        document.getElementById('ragazzoId').value = "";
+                    }, 2000);
+                }).withFailureHandler(function(err){
+                    console.error('Errore addSpecialita:', err);
+                    showStatus("Errore salvataggio specialità.", false);
+                    button.disabled = false;
+                }).addSpecialita(data);
+
+            }).withFailureHandler(function(err){
+                console.error('Errore checkSpecialitaExists:', err);
+                showStatus("Errore di verifica. Riprova.", false);
+                button.disabled = false;
+            }).checkSpecialitaExists(ragazzoId, specialita);
+        }
+    </script>
+</body>
+</html>
