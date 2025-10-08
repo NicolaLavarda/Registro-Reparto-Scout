@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            background-color: #f7f7f7;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        label {
+            font-weight: 700;
+            color: #555;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: stretch;
+        }
+
+        input[type="button"] {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            color: white;
+            background-color: #4CAF50;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        input[type="button"]:hover {
+            background-color: #45a049;
+            transform: translateY(-1px);
+        }
+
+        input[type="button"]:active {
+            transform: translateY(0);
+        }
+
+        input[type="button"]:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+
+        input[type="button"] {
+            white-space: normal;
+            word-wrap: break-word;
+            text-align: center;
+            width: 100%;
+            height: 50px;
+            line-height: 1.0em;
+            overflow: hidden;
+        }
+        
+        #checkmark {
+            color: #4CAF50;
+            font-size: 24px;
+            display: none;
+            text-align: center;
+        }
+
+        .status-message {
+            color: #4CAF50;
+            font-weight: 700;
+            display: none;
+            text-align: center;
+            margin-top: 8px;
+        }
+        
+        .add-link {
+            color: grey;
+            text-decoration: none;
+            font-size: 0.9em;
+            cursor: pointer;
+            align-self: flex-start;
+            margin-top: -8px;
+            margin-bottom: 8px;
+        }
+
+        .add-link:hover {
+            text-decoration: underline;
+        }
+
+        .optional-container {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form id="form">
+            <!-- Selezione Ragazzo -->
+            <label for="ragazzoInput">Ragazzo:</label>
+            <input type="text" name="ragazzoText" id="ragazzoInput" list="ragazziList" placeholder="Digita e seleziona un nome" required>
+            <datalist id="ragazziList"></datalist>
+            <input type="hidden" id="ragazzoId" name="ragazzo">
+
+            <!-- Selezione Specialità -->
+            <label for="specialitaSelect">Specialità:</label>
+            <select name="id_specialita" id="specialitaSelect" required>
+                <option value="">Seleziona specialità...</option>
+            </select>
+
+            <!-- Numero prova -->
+            <label for="num_prova">Numero Prova (1-5):</label>
+            <input type="number" id="num_prova" name="num_prova" min="1" max="5" required>
+            
+            <!-- Link per aggiungere altri campi -->
+            <a id="add-collaborator-link" class="add-link">+ ulteriori opzioni</a>
+            <div id="collaborator-container" class="optional-container">
+                <label for="ragazzoInsiemeInput">Prova fatta assieme a:</label>
+                <input type="text" name="ragazzoInsiemeText" id="ragazzoInsiemeInput" list="ragazziList" placeholder="Digita e seleziona un nome">
+                <input type="hidden" id="ragazzoInsiemeId" name="ragazzoInsieme">
+
+                <label for="maestroInput">Maestro di Specialità:</label>
+                <input type="text" name="maestroText" id="maestroInput" list="ragazziList" placeholder="Digita e seleziona un nome">
+                <input type="hidden" id="maestroId" name="maestro">
+            </div>
+
+            <!-- Descrizione prova -->
+            <label for="descrizione">Descrizione prova:</label>
+            <textarea name="descrizione" id="descrizione" rows="4" placeholder="Inserisci la descrizione della prova..." required></textarea>
+            
+            <!-- Link per aggiungere nota -->
+            <a id="add-note-link" class="add-link">+ aggiungi nota</a>
+            <div id="note-container" class="optional-container">
+                <label for="notaAggiuntiva">Note aggiuntive:</label>
+                <textarea name="notaAggiuntiva" id="notaAggiuntiva" rows="3" placeholder="Aggiungi altre annotazioni..."></textarea>
+                
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
+                    <input type="checkbox" id="daNotificare" name="daNotificare" style="width: auto;">
+                    <label for="daNotificare" style="margin-bottom: 0;">Contrassegna come da notificare</label>
+                </div>
+            </div>
+
+
+            <!-- Data prova -->
+            <label for="data">Data prova:</label>
+            <input type="date" name="data" id="data">
+
+            <!-- Pulsanti -->
+            <div class="button-container">
+                <input type="button" id="btnNormale" value="Salva">
+                <input type="button" id="btnNuovaSpecialita" value="Salva + nuova prova di specialità a questo EG">
+                <input type="button" id="btnNuovaProva" value="Salva + nuova prova di questa specialità di questo EG">
+            </div>
+            
+            <div style="text-align: center;">
+                <span id="checkmark" style="display:none;">✔️</span>
+                <span id="statusMessage" class="status-message"></span>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const nameToId = {};
+        const buttons = document.querySelectorAll('input[type="button"]');
+
+        function showStatus(message, isSuccess = true) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
+            statusMessage.style.display = 'inline';
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Funzione per resettare i campi opzionali
+        function resetOptionalFields() {
+            // Reset campi collaboratore
+            document.getElementById('ragazzoInsiemeInput').value = '';
+            document.getElementById('ragazzoInsiemeId').value = '';
+            document.getElementById('maestroInput').value = '';
+            document.getElementById('maestroId').value = '';
+            document.getElementById('collaborator-container').style.display = 'none';
+            document.getElementById('add-collaborator-link').style.display = 'block';
+
+            // Reset campo nota
+            document.getElementById('notaAggiuntiva').value = '';
+            document.getElementById('daNotificare').checked = false; 
+            document.getElementById('note-container').style.display = 'none';
+            document.getElementById('add-note-link').style.display = 'block';
+        }
+
+        window.onload = function() {
+            google.script.run.withSuccessHandler(function(data) {
+                const datalist = document.getElementById('ragazziList');
+                datalist.innerHTML = '';
+                data.forEach(row => {
+                    const opt = document.createElement('option');
+                    opt.value = row[1]; // Nome Cognome
+                    datalist.appendChild(opt);
+                    nameToId[row[1]] = row[0];
+                });
+            }).getRagazziList();
+        };
+
+        // Aggiorna la select delle specialità quando cambia il ragazzo
+        document.getElementById('ragazzoInput').addEventListener('input', function() {
+            const input = this.value.trim();
+            const select = document.getElementById('specialitaSelect');
+            select.innerHTML = '<option value="">Seleziona specialità...</option>';
+
+            const idRagazzo = nameToId[input];
+            if (!idRagazzo) {
+                document.getElementById('ragazzoId').value = "";
+                return;
+            }
+
+            document.getElementById('ragazzoId').value = idRagazzo;
+            showStatus("Recupero specialità in corso...", true);
+
+            google.script.run
+                .withSuccessHandler(function(data) {
+                    showStatus("Specialità caricate!", true);
+                    if (!data || data.length === 0) return;
+                    data.forEach(row => {
+                        const option = document.createElement('option');
+                        option.value = row[1];
+                        option.textContent = row[2];
+                        select.appendChild(option);
+                    });
+                })
+                .withFailureHandler(function(err) {
+                    console.error('Errore getSpecialitaByRagazzo:', err);
+                    showStatus("Errore nel recuperare le specialità.", false);
+                })
+                .getSpecialitaByRagazzo(idRagazzo);
+        });
+        
+        // Listener per la gestione dei campi opzionali
+        document.getElementById('add-collaborator-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            this.style.display = 'none';
+            document.getElementById('collaborator-container').style.display = 'flex';
+        });
+
+        document.getElementById('add-note-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            this.style.display = 'none';
+            document.getElementById('note-container').style.display = 'flex';
+        });
+
+        // Listener per mappare nome -> ID dei campi opzionali
+        document.getElementById('ragazzoInsiemeInput').addEventListener('input', function() {
+            document.getElementById('ragazzoInsiemeId').value = nameToId[this.value.trim()] || "";
+        });
+
+        document.getElementById('maestroInput').addEventListener('input', function() {
+            document.getElementById('maestroId').value = nameToId[this.value.trim()] || "";
+        });
+
+        // Aggiunge i listener ai pulsanti
+        document.getElementById('btnNormale').addEventListener('click', () => salvaDati('normale'));
+        document.getElementById('btnNuovaSpecialita').addEventListener('click', () => salvaDati('nuovaSpecialita'));
+        document.getElementById('btnNuovaProva').addEventListener('click', () => salvaDati('nuovaProva'));
+
+        function salvaDati(tipo) {
+            const button = document.activeElement;
+            buttons.forEach(b => b.disabled = true);
+
+            const formElement = document.getElementById('form');
+            const ragazzoId = document.getElementById('ragazzoId').value;
+            let numero_prova = document.getElementById('num_prova').value;
+            const specialitaId = document.getElementById('specialitaSelect').value;
+            const descrizione = document.getElementById('descrizione').value.trim();
+
+            if (!ragazzoId) {
+                showStatus("Seleziona un ragazzo valido dalla lista.", false);
+                buttons.forEach(b => b.disabled = false); return;
+            }
+            if (!specialitaId) {
+                showStatus("Seleziona una specialità.", false);
+                buttons.forEach(b => b.disabled = false); return;
+            }
+            if (!numero_prova || numero_prova < 1 || numero_prova > 5) {
+                showStatus("Inserisci un numero di prova valido (1-5).", false);
+                buttons.forEach(b => b.disabled = false); return;
+            }
+            if (!descrizione) {
+                showStatus("Inserisci la descrizione della prova.", false);
+                buttons.forEach(b => b.disabled = false); return;
+            }
+
+            const formData = {
+                ragazzo: ragazzoId,
+                id_specialita: specialitaId,
+                num_prova: numero_prova,
+                insieme: document.getElementById('ragazzoInsiemeInput').value,
+                insieme_id: document.getElementById('ragazzoInsiemeId').value,
+                maestro: document.getElementById('maestroInput').value,
+                maestro_id: document.getElementById('maestroId').value,
+                descrizione: descrizione,
+                nota: document.getElementById('notaAggiuntiva').value.trim(),
+                da_notificare: document.getElementById('daNotificare').checked ? 'Sì' : 'No', // CHECKBOX: se spuntata, invia 'Sì', altrimenti 'No'
+                data: document.getElementById('data').value
+            };
+            
+            showStatus("Salvataggio in corso...", true);
+
+            google.script.run
+                .withSuccessHandler(() => {
+                    const checkmark = document.getElementById('checkmark');
+                    checkmark.style.display = 'inline';
+                    showStatus("Salvataggio completato!", true);
+
+                    setTimeout(() => {
+                        checkmark.style.display = 'none';
+                        buttons.forEach(b => b.disabled = false);
+
+                        switch (tipo) {
+                            case 'normale':
+                                formElement.reset();
+                                document.getElementById('ragazzoId').value = "";
+                                document.getElementById('specialitaSelect').innerHTML = '<option value="">Seleziona specialità...</option>';
+                                resetOptionalFields();
+                                break;
+                            case 'nuovaSpecialita':
+                                document.getElementById('specialitaSelect').selectedIndex = 0;
+                                document.getElementById('descrizione').value = '';
+                                document.getElementById('num_prova').value = '';
+                                document.getElementById('data').value = '';
+                                resetOptionalFields();
+                                break;
+                            case 'nuovaProva':
+                                if (parseInt(numero_prova, 10) < 5) {
+                                    document.getElementById('num_prova').value = parseInt(numero_prova, 10) + 1;
+                                } else {
+                                    document.getElementById('num_prova').value = "";
+                                }
+                                document.getElementById('descrizione').value = '';
+                                document.getElementById('data').value = '';
+                                resetOptionalFields();
+                                break;
+                        }
+                    }, 2000);
+                })
+                .withFailureHandler(err => {
+                    console.error('Errore addProva:', err);
+                    showStatus("Errore salvataggio prova. Controlla log.", false);
+                    buttons.forEach(b => b.disabled = false);
+                })
+                .addProva(formData);
+        }
+    </script>
+</body>
+</html>
