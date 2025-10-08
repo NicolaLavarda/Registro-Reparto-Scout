@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+      body { padding: 20px; background: #fafafa; font-family: 'Inter', Arial, sans-serif; }
+      .card { border-radius: 12px; }
+      .container { 
+        max-width: 600px; /* Limita la larghezza per una migliore leggibilità */
+        margin: 0 auto; 
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      /* Stili per il contenitore del form iniettato */
+      #popupContainer {
+        margin-top: 30px;
+        min-height: 400px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h4 class="center-align">📒 Registro Scout</h4>
+
+    <div class="row">
+      <!-- Sezione Ragazzi -->
+      <div class="col s12 m6 l4">
+        <div class="card blue lighten-4">
+          <div class="card-content">
+            <span class="card-title">Ragazzi</span>
+            <button class="btn waves-effect blue" onclick="openForm('ragazzo')">Aggiungi</button>
+            <button class="btn waves-effect red" onclick="openForm('removeRagazzo')">Rimuovi</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezione Progressione -->
+      <div class="col s12 m6 l4">
+        <div class="card teal lighten-4">
+          <div class="card-content">
+            <span class="card-title">Progressione</span>
+            <button class="btn waves-effect teal" onclick="openForm('meta')">Aggiungi Meta</button>
+            <button class="btn waves-effect teal" onclick="openForm('impegno')">Aggiungi Impegno</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezione Report -->
+      <div class="col s12 m6 l4">
+        <div class="card amber lighten-4">
+          <div class="card-content">
+            <span class="card-title">Report</span>
+            <button class="btn waves-effect amber darken-2" onclick="openForm('reportRagazzo')">Report Ragazzo</button>
+            <button class="btn waves-effect amber darken-2" onclick="openForm('reportConsiglio')">Report Consiglio</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenitore dove verrà iniettato il form -->
+    <div id="popupContainer">
+        <p class="center-align" style="padding: 50px;">Seleziona un'azione dai pulsanti sopra per caricare il form.</p>
+    </div>
+
+    <script>
+      /**
+       * Gestisce il caricamento dinamico del form e l'esecuzione manuale dello script.
+       * @param {string} type - Il nome del form da caricare.
+       */
+      function openForm(type) {
+        const popupContainer = document.getElementById('popupContainer');
+        popupContainer.innerHTML = '<p class="center-align" style="padding: 50px;">Caricamento in corso...</p>'; // Loader
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            const popupContainer = document.getElementById('popupContainer');
+
+            // Se il server ritorna l'oggetto { html, js } (nuovo comportamento)
+            if (result && typeof result === 'object' && result.html !== undefined) {
+              popupContainer.innerHTML = result.html;
+
+              // Esegui il JS restituito creando un tag <script>
+              if (result.js) {
+                const scriptEl = document.createElement('script');
+                scriptEl.type = 'text/javascript';
+                scriptEl.textContent = result.js;
+                // appendChild esegue lo script immediatamente
+                document.body.appendChild(scriptEl);
+                // (opzionale) rimuovilo subito dopo l'esecuzione per tenere pulito il DOM
+                setTimeout(() => scriptEl.remove(), 0);
+              }
+
+              // 1) re-inizializza componenti Materialize
+              if (window.M && typeof window.M.AutoInit === 'function') window.M.AutoInit();
+
+              // 2) se lo script del form definisce una funzione di init, chiamala
+              if (typeof window.initForm === 'function') {
+                try { window.initForm(); } catch(e){ console.error('initForm error', e); }
+              }
+              // 3) come fallback, se qualcuno ha assegnato window.onload, chiamalo
+              if (typeof window.onload === 'function') {
+                try { window.onload(); } catch(e){ /* ignora */ }
+              }
+              return;
+            }
+
+            // --- Compatibilità: se il server tornasse ancora una stringa HTML (vecchio metodo)
+            if (typeof result === 'string') {
+              const scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/i;
+              const match = result.match(scriptRegex);
+              const contentWithoutScript = result.replace(scriptRegex, '');
+              popupContainer.innerHTML = contentWithoutScript;
+              if (match && match[1]) {
+                const scriptEl = document.createElement('script');
+                scriptEl.type = 'text/javascript';
+                scriptEl.textContent = match[1];
+                document.body.appendChild(scriptEl);
+                setTimeout(()=>scriptEl.remove(),0);
+              }
+              if (window.M && typeof window.M.AutoInit === 'function') window.M.AutoInit();
+              if (typeof window.initForm === 'function') { try { window.initForm(); } catch(e){} }
+              if (typeof window.onload === 'function') { try { window.onload(); } catch(e){} }
+              return;
+            }
+
+            popupContainer.innerHTML = '<p class="red-text center-align">Risposta non valida dal server.</p>';
+          })
+          .withFailureHandler(function(err) {
+            console.error('Errore nel caricamento del form:', err);
+            document.getElementById('popupContainer').innerHTML = `<p class="red-text center-align">Errore: ${err.message}</p>`;
+          })
+          .loadForm(type);
+
+      }
+      
+      // Inizializza i componenti Materialize all'avvio della Web App
+      document.addEventListener('DOMContentLoaded', function() {
+        M.AutoInit();
+      });
+    </script>
+  </body>
+</html>
