@@ -355,6 +355,9 @@
     </div>
 
     <script>
+      if (!window._reportRagazzoInitialized) {
+        window._reportRagazzoInitialized = true;
+
         const nameToId = {};
         const mostraBtn = document.getElementById('mostraBtn');
         const ragazzoInput = document.getElementById('ragazzoInput');
@@ -884,33 +887,36 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            creaDocBtn.disabled = true; // Disabilita all'inizio
-            mostraBtn.addEventListener('click', () => mostraRegistro());
-            viewBtn.addEventListener('click', () => toggleMode('view'));
-            editBtn.addEventListener('click', () => toggleMode('edit'));
-            creaDocBtn.addEventListener('click', avviaCreazioneDoc); // Listener per il nuovo pulsante
-            popolaDatalist();
+        window.initForm = function initForm() {
+          console.log("Entrato in reportRagazzo")
+          document.addEventListener('DOMContentLoaded', function() {
+              creaDocBtn.disabled = true; // Disabilita all'inizio
+              mostraBtn.addEventListener('click', () => mostraRegistro());
+              viewBtn.addEventListener('click', () => toggleMode('view'));
+              editBtn.addEventListener('click', () => toggleMode('edit'));
+              creaDocBtn.addEventListener('click', avviaCreazioneDoc); // Listener per il nuovo pulsante
+              popolaDatalist();
 
-            // Gestione toggle PP
-            const togglePPBtn = document.getElementById("togglePPBtn");
-            const ppDiv = document.getElementById("PP");
-            togglePPBtn.addEventListener("click", () => {
-                const isOpen = ppDiv.style.display !== "none";
-                ppDiv.style.display = isOpen ? "none" : "block";
-                togglePPBtn.classList.toggle("open", !isOpen);
-            });
+              // Gestione toggle PP
+              const togglePPBtn = document.getElementById("togglePPBtn");
+              const ppDiv = document.getElementById("PP");
+              togglePPBtn.addEventListener("click", () => {
+                  const isOpen = ppDiv.style.display !== "none";
+                  ppDiv.style.display = isOpen ? "none" : "block";
+                  togglePPBtn.classList.toggle("open", !isOpen);
+              });
 
-            // Gestione toggle Storico
-            const toggleStoricoBtn = document.getElementById("toggleStoricoBtn");
-            const storicoDiv = document.getElementById("Storico");
-            toggleStoricoBtn.addEventListener("click", () => {
-                const isOpen = storicoDiv.style.display !== "none";
-                storicoDiv.style.display = isOpen ? "none" : "block";
-                toggleStoricoBtn.classList.toggle("open", !isOpen);
-            });
-        });
-
+              // Gestione toggle Storico
+              const toggleStoricoBtn = document.getElementById("toggleStoricoBtn");
+              const storicoDiv = document.getElementById("Storico");
+              toggleStoricoBtn.addEventListener("click", () => {
+                  const isOpen = storicoDiv.style.display !== "none";
+                  storicoDiv.style.display = isOpen ? "none" : "block";
+                  toggleStoricoBtn.classList.toggle("open", !isOpen);
+              });
+          });
+        }
+      }
     </script>
 </body>
 </html>
