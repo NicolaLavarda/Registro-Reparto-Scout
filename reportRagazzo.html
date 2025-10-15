@@ -355,9 +355,6 @@
     </div>
 
     <script>
-      if (!window._reportRagazzoInitialized) {
-        window._reportRagazzoInitialized = true;
-
         const nameToId = {};
         const mostraBtn = document.getElementById('mostraBtn');
         const ragazzoInput = document.getElementById('ragazzoInput');
@@ -435,7 +432,7 @@
 
             nomeEl.textContent = data.nomeCompleto || 'Sconosciuto';
 
-            const annoText = data.anno ? `${data.anno}°` : 'Non registrato';
+            const annoText = data.anno ? `${data.anno}` : 'Non registrato';
             const tappaText = data.tappa || 'Non registrata';
             const sqText = data.squadriglia || 'Non registrata';
             const ruoloText = data.ruolo || 'Non registrato';
@@ -582,7 +579,7 @@
 
             let StoricoHTML = "";
             if ( data.storico &&  data.storico.length > 0) {
-              let frasi = ["Nuovo anno registrato:", "Nuova tappa data:", "Cambio squadriglia:", "Nuovo ruolo di sq:", "Nuovo incarico:"]
+              let frasi = ["Nuovo anno registrato:", "Nuova tappa data:", "Cambio squadriglia:", "Nuovo ruolo di sq:", "Nuovo incarico:", "Nuova nota:"]
               for (let i = 1; i <= data.maxID_anno; i++) {
                 const sortedStorico =  data.storico.slice().filter(el => el.num_id_anno === i).sort((a, b) => a.timestamp - b.timestamp);
                 if(sortedStorico.length > 0) {
@@ -887,37 +884,33 @@
             }
         }
 
-        window.initForm = function initForm() {
-          console.log("Entrato in reportRagazzo")
-          document.addEventListener('DOMContentLoaded', function() {
-              creaDocBtn.disabled = true; // Disabilita all'inizio
-              mostraBtn.addEventListener('click', () => mostraRegistro());
-              viewBtn.addEventListener('click', () => toggleMode('view'));
-              editBtn.addEventListener('click', () => toggleMode('edit'));
-              creaDocBtn.addEventListener('click', avviaCreazioneDoc); // Listener per il nuovo pulsante
-              popolaDatalist();
+        document.addEventListener('DOMContentLoaded', function() {
+            creaDocBtn.disabled = true; // Disabilita all'inizio
+            mostraBtn.addEventListener('click', () => mostraRegistro());
+            viewBtn.addEventListener('click', () => toggleMode('view'));
+            editBtn.addEventListener('click', () => toggleMode('edit'));
+            creaDocBtn.addEventListener('click', avviaCreazioneDoc); // Listener per il nuovo pulsante
+            popolaDatalist();
 
-              // Gestione toggle PP
-              const togglePPBtn = document.getElementById("togglePPBtn");
-              const ppDiv = document.getElementById("PP");
-              togglePPBtn.addEventListener("click", () => {
-                  const isOpen = ppDiv.style.display !== "none";
-                  ppDiv.style.display = isOpen ? "none" : "block";
-                  togglePPBtn.classList.toggle("open", !isOpen);
-              });
+            // Gestione toggle PP
+            const togglePPBtn = document.getElementById("togglePPBtn");
+            const ppDiv = document.getElementById("PP");
+            togglePPBtn.addEventListener("click", () => {
+                const isOpen = ppDiv.style.display !== "none";
+                ppDiv.style.display = isOpen ? "none" : "block";
+                togglePPBtn.classList.toggle("open", !isOpen);
+            });
 
-              // Gestione toggle Storico
-              const toggleStoricoBtn = document.getElementById("toggleStoricoBtn");
-              const storicoDiv = document.getElementById("Storico");
-              toggleStoricoBtn.addEventListener("click", () => {
-                  const isOpen = storicoDiv.style.display !== "none";
-                  storicoDiv.style.display = isOpen ? "none" : "block";
-                  toggleStoricoBtn.classList.toggle("open", !isOpen);
-              });
-          });
-        }
-      }
+            // Gestione toggle Storico
+            const toggleStoricoBtn = document.getElementById("toggleStoricoBtn");
+            const storicoDiv = document.getElementById("Storico");
+            toggleStoricoBtn.addEventListener("click", () => {
+                const isOpen = storicoDiv.style.display !== "none";
+                storicoDiv.style.display = isOpen ? "none" : "block";
+                toggleStoricoBtn.classList.toggle("open", !isOpen);
+            });
+        });
+
     </script>
 </body>
 </html>
-
