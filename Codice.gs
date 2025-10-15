@@ -109,7 +109,7 @@ function addInfoRagazzo(form) {
   const dataOraInserimento = new Date();
 
   // Aggiungo la riga: 
-  // [ID_ragazzo, Anno scout, Tappa, Squadriglia, Ruolo, Incarico, Data, Data Inserimento]
+  // [ID_ragazzo, Anno scout, Tappa, Squadriglia, Ruolo, Incarico, Nota, Data, Data Inserimento]
   sheet.appendRow([
     form.ragazzo,
     form.anno || "",
@@ -117,14 +117,15 @@ function addInfoRagazzo(form) {
     form.squadriglia || "",
     form.ruolo || "",
     form.incarico || "",
+    form.nota || "",
     form.data || "",
     dataOraInserimento
   ]);
 
-  // Formatto le date (colonna 7 = Data, colonna 8 = Data Inserimento)
+  // Formatto le date (colonna 8 = Data, colonna 9 = Data Inserimento)
   const newRow = sheet.getLastRow();
-  sheet.getRange(newRow, 7).setNumberFormat("dd/MM/yyyy");
-  sheet.getRange(newRow, 8).setNumberFormat("dd/MM/yyyy HH:mm:ss");
+  sheet.getRange(newRow, 8).setNumberFormat("dd/MM/yyyy");
+  sheet.getRange(newRow, 9).setNumberFormat("dd/MM/yyyy HH:mm:ss");
 }
 
 function addMeta(form) {
@@ -235,8 +236,8 @@ function getSquadriglie() {
 function getTappe() { 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName("Info");
-  // Hardcoded per ora, dato che non era nel foglio info
-  return ["Scoperta", "Competenza", "Responsabilità"];
+  const values = sheet.getRange("I2:I").getValues(); // Colonna I
+  return values.flat().filter(v => v && v.toString().trim() !== "");
 }
 
 function getRuoli() {
@@ -335,6 +336,77 @@ function getInfoRagazzo(idRagazzo, campo, checkPresentAnno = false) {
   }
 
   return ultima;
+}
+
+/**
+ * Restituisce i valori più recenti di più campi per un dato ragazzo.
+ * @param {string|number} idRagazzo - ID del ragazzo da cercare
+ * @param {Array<string>} campi - Lista dei campi da restituire (es. ["Anno scout", "Tappa", "Ruolo"])
+ * @param {Array<boolean>} checkPresentAnno - Lista parallela di boolean (true se il campo deve appartenere all'anno corrente)
+ * @param {Array<Array>} dataOpt - (Opzionale) dati già letti dal foglio "Info Ragazzi" (include intestazioni nella riga 0)
+ * @returns {Object} - Oggetto con chiavi = nomi campo e valori = ultimo valore valido
+ */
+function getInfoRagazzoAll(idRagazzo, campi, checkPresentAnno = [], dataOpt = null) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("Info Ragazzi");
+
+  // --- Lettura dati: se non forniti, leggo solo una volta
+  let data;
+  let headers;
+  if (dataOpt && dataOpt.length > 1) {
+    headers = dataOpt[0];
+    data = dataOpt.slice(1);
+  } else {
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return {};
+    const lastCol = sheet.getLastColumn();
+    headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  }
+
+  const idxId = headers.indexOf("ID_ragazzo");
+  const idxData = headers.indexOf("Data");
+  const idxInserimento = headers.indexOf("Data Inserimento");
+
+  if (idxId === -1 || idxData === -1 || idxInserimento === -1) {
+    throw new Error("Colonne richieste non trovate nel foglio Info Ragazzi");
+  }
+
+  // Prepara struttura risultati
+  const risultati = {};
+  campi.forEach(c => (risultati[c] = null));
+
+  // Trova indice di ogni campo solo una volta
+  const idxCampi = campi.map(campo => headers.indexOf(campo));
+
+  // Cicla una sola volta su tutte le righe del foglio
+  const valoriTrovati = {}; // {campo: {data: Date, valore: any}}
+  for (let i = 0; i < data.length; i++) {
+    const r = data[i];
+    if (r[idxId] != idRagazzo) continue;
+
+    for (let j = 0; j < campi.length; j++) {
+      const idxCampo = idxCampi[j];
+      if (idxCampo === -1 || !r[idxCampo]) continue;
+
+      let d = r[idxData] instanceof Date ? r[idxData] : r[idxInserimento];
+      if (!(d instanceof Date)) continue;
+
+      // se richiesto, scarta se non nell’anno corrente
+      if (checkPresentAnno[j] && !isDateInPresentAnno(d)) continue;
+
+      if (!valoriTrovati[campi[j]] || d > valoriTrovati[campi[j]].data) {
+        valoriTrovati[campi[j]] = { data: d, valore: r[idxCampo] };
+      }
+    }
+  }
+
+  // Prepara output finale
+  campi.forEach(campo => {
+    risultati[campo] = valoriTrovati[campo] ? valoriTrovati[campo].valore : null;
+  });
+
+  return risultati;
 }
 
 
@@ -973,11 +1045,16 @@ function getReportRagazzoData(idRagazzo) {
   const nomeCompleto = ragazzo ? (ragazzo[1] + " " + ragazzo[2]) : "Sconosciuto";
 
   // --- Dati base del ragazzo: Nome e Cognome, Anno, Squadriglia, Tappa e Ruolo attuale
-  const anno = getInfoRagazzo(idRagazzo, "Anno scout", true) || "Nessun anno registrato";
-  const tappa = getInfoRagazzo(idRagazzo, "Tappa", true) || "Nessuna tappa registrata";
-  const squadriglia = getInfoRagazzo(idRagazzo, "Squadriglia", true) || "Nessuna squadriglia registrata";
-  const ruolo = getInfoRagazzo(idRagazzo, "Ruolo", true) || "Nessun ruolo registrato";
-  const incarico = getInfoRagazzo(idRagazzo, "Incarico", true) || "Nessun incarico registrato";
+  const info_ragazzo = getInfoRagazzoAll(
+    idRagazzo,
+    ["Anno scout", "Tappa", "Squadriglia", "Ruolo", "Incarico"],
+    [true, false, false, false, true]
+  );
+  const anno = info_ragazzo["Anno scout"] + "° anno" || "Nessun anno registrato";
+  const tappa = info_ragazzo["Tappa"] || "Nessuna tappa registrata";
+  const squadriglia = info_ragazzo["Squadriglia"] || "Nessuna squadriglia registrata";
+  const ruolo = info_ragazzo["Ruolo"] || "Nessun ruolo registrato";
+  const incarico = info_ragazzo["Incarico"] || "Nessun incarico registrato";
 
   const statoRagazzo = isRagazzoAttivo(idRagazzo);
 
@@ -1075,28 +1152,31 @@ function getReportRagazzoData(idRagazzo) {
   
   const sheetAnni = ss.getSheetByName("Registro anni");
   const lastRowAnni = sheetAnni.getLastRow();
-  const AnniData = lastRowAnni > 1 ? sheetAnni.getRange(2, 1, lastRowAnni - 1, 4).getValues() : [];
+  const AnniData = lastRowAnni > 1 ? sheetAnni.getRange(2, 1, lastRowAnni - 1, sheetAnni.getLastColumn()).getValues() : [];
   const numeri_id_anni = AnniData.map(riga => parseInt(riga[0].slice(1), 10));
   const maxID_anno = numeri_id_anni.length > 0 ? Math.max(...numeri_id_anni) : 0;   // numero di anni registrati
   
   const StoricoData = lastRowStorico > 1
-      ? sheetStorico.getRange(2, 1, lastRowStorico - 1, 8).getValues()
+      ? sheetStorico.getRange(2, 1, lastRowStorico - 1, sheetStorico.getLastColumn()).getValues()
           .filter(r => r[0] === idRagazzo)
-          .sort((a, b) => a[6] ? (a[6].getTime() - b[6].getTime()) : (a[7].getTime() - b[7].getTime()))
+          .sort((a, b) => a[7] ? (a[7].getTime() - b[7].getTime()) : (a[8].getTime() - b[8].getTime()))
           .map(r => {
+              r[1] = (!isNaN(r[1]) && Number(r[1]) !== 0) 
+                  ? String(Math.round(Number(r[1]))) + "° anno"
+                  : "";
               let timestamp = 0;
-              let data_utile = r[6]
-              if (r[6] instanceof Date && !isNaN(r[6].getTime())) {
-                  timestamp = r[6].getTime();
-              }
-              else if (r[7] instanceof Date && !isNaN(r[7].getTime())) {
+              let data_utile = r[7]
+              if (r[7] instanceof Date && !isNaN(r[7].getTime())) {
                   timestamp = r[7].getTime();
-                  data_utile = r[7];
+              }
+              else if (r[8] instanceof Date && !isNaN(r[8].getTime())) {
+                  timestamp = r[8].getTime();
+                  data_utile = r[8];
               }
 
               let anno_id = null;
               let titolo_anno = null;
-              info = r.slice(1, 6);
+              info = r.slice(1, 7);
               for (let i = 0; i < AnniData.length; i++) {
                   const rawInizio = AnniData[i][1];
                   const rawFine   = AnniData[i][2];
@@ -1290,7 +1370,7 @@ function creaReportInDoc(idRagazzo) {
     }
     let p = body.appendParagraph('');
     p.appendText("Anno di reparto: ").setAttributes(BOLD_STYLE);
-    p.appendText(data.anno + "°").setBold(false);
+    p.appendText(data.anno).setBold(false);
     p = body.appendParagraph('');
     p.appendText("Tappa: ").setAttributes(BOLD_STYLE);
     p.appendText(data.tappa).setBold(false);
@@ -1331,7 +1411,7 @@ function creaReportInDoc(idRagazzo) {
         body.appendParagraph(s.nome).setHeading(DocumentApp.ParagraphHeading.HEADING2);
         if (s.prove.length > 0) {
           s.prove.forEach(p => {
-            let provaText = `${p.descrizione}${p.data ? "   [" + p.data + "]" : ""}`;
+            let provaText = `${p.descrizione}${p.data ? "\u0009[" + p.data + "]" : ""}`;
             let details = [];
             if (p.insieme) details.push(`Prova fatta assieme a: ${p.insieme}`);
             if (p.maestro) details.push(`Maestro di Specialità: ${p.maestro}`);
@@ -1379,7 +1459,7 @@ function creaReportInDoc(idRagazzo) {
     // Storico
     body.appendParagraph("Storico").setHeading(DocumentApp.ParagraphHeading.HEADING1);
     if (data.storico && data.storico.length > 0) {
-        let frasi = ["Nuovo anno registrato:", "Nuova tappa data:", "Cambio squadriglia:", "Nuovo ruolo di sq:", "Nuovo incarico:"]
+        let frasi = ["Nuovo anno registrato:", "Nuova tappa data:", "Cambio squadriglia:", "Nuovo ruolo di sq:", "Nuovo incarico:", "Nuova nota:"]
         for (let i = 1; i <= data.maxID_anno; i++) {
           const sortedStorico = data.storico.slice().filter(el => el.num_id_anno === i).sort((a, b) => a.timestamp - b.timestamp);
           if (sortedStorico.length > 0) {
@@ -1391,7 +1471,7 @@ function creaReportInDoc(idRagazzo) {
                    let p = body.appendParagraph('');
                    p.appendText(`${frasi[k]} `);
                    p.appendText(item.info[k]).setAttributes(BOLD_STYLE);
-                   p.appendText(` (${item.dataStr})`);
+                   p.appendText(`\u0009[${item.dataStr}]`).setBold(false);
                    last_item[k] = item.info[k];
                 }
               }
