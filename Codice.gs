@@ -1598,7 +1598,7 @@ function onOpen() {
 // =====================================================================
 
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('index')
+  return HtmlService.createTemplateFromFile('index').evaluate()
     .setTitle('Registro Scout')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -1608,6 +1608,7 @@ function loadForm(type) {
   switch (type) {
     case 'ragazzo': fileName = 'addRagazzo'; break;
     case 'removeRagazzo': fileName = 'removeRagazzo'; break;
+    case 'infoRagazzo': fileName = 'addInfoRagazzo'; break;
     case 'meta': fileName = 'addMeta'; break;
     case 'impegno': fileName = 'addImpegno'; break;
     case 'specialita': fileName = 'addSpecialita'; break;
@@ -1618,9 +1619,10 @@ function loadForm(type) {
     case 'reportRagazzo': fileName = 'reportRagazzo'; break;
     case 'reportConsiglio': fileName = 'reportConsiglio'; break;
     case 'reportRagazzoDoc': fileName = 'reportRagazzoDoc'; break;
+    case 'anno': fileName = 'addAnno'; break;
     default:
       throw new Error('Modulo non trovato: ' + type);
   }
-  return HtmlService.createHtmlOutputFromFile(fileName).getContent();
+  return HtmlService.createTemplateFromFile(fileName).evaluate().getContent();
 }
 

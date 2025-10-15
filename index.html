@@ -31,35 +31,43 @@
     <h4 class="center-align">📒 Registro Scout</h4>
 
     <div class="row">
-      <!-- Sezione Ragazzi -->
+      <!-- Sezione Anagrafica e Anno -->
       <div class="col s12 m6 l4">
         <div class="card blue lighten-4">
           <div class="card-content">
-            <span class="card-title">Ragazzi</span>
-            <button class="btn waves-effect blue" onclick="openForm('ragazzo')">Aggiungi</button>
-            <button class="btn waves-effect red" onclick="openForm('removeRagazzo')">Rimuovi</button>
+            <span class="card-title">Anagrafica e Anno</span>
+            <button class="btn waves-effect blue" onclick="openForm('ragazzo')">Aggiungi Ragazzo</button>
+            <button class="btn waves-effect red" onclick="openForm('removeRagazzo')">Rimuovi Ragazzo</button>
+            <button class="btn waves-effect green" onclick="openForm('infoRagazzo')">Aggiungi Info Ragazzo</button>
+            <button class="btn waves-effect orange" onclick="openForm('anno')">Nuovo Anno</button>
           </div>
         </div>
       </div>
 
-      <!-- Sezione Progressione -->
+      <!-- Sezione Progressione Personale -->
       <div class="col s12 m6 l4">
         <div class="card teal lighten-4">
           <div class="card-content">
             <span class="card-title">Progressione</span>
             <button class="btn waves-effect teal" onclick="openForm('meta')">Aggiungi Meta</button>
             <button class="btn waves-effect teal" onclick="openForm('impegno')">Aggiungi Impegno</button>
+            <button class="btn waves-effect teal" onclick="openForm('specialita')">Aggiungi Specialità</button>
+            <button class="btn waves-effect teal" onclick="openForm('prova')">Aggiungi Prova</button>
+            <button class="btn waves-effect teal" onclick="openForm('pp')">Aggiungi PP</button>
           </div>
         </div>
       </div>
 
-      <!-- Sezione Report -->
+      <!-- Sezione Consigli e Report -->
       <div class="col s12 m6 l4">
         <div class="card amber lighten-4">
           <div class="card-content">
-            <span class="card-title">Report</span>
-            <button class="btn waves-effect amber darken-2" onclick="openForm('reportRagazzo')">Report Ragazzo</button>
-            <button class="btn waves-effect amber darken-2" onclick="openForm('reportConsiglio')">Report Consiglio</button>
+            <span class="card-title">Consigli e Report</span>
+            <button class="btn waves-effect amber darken-2" onclick="openForm('consiglio')">Aggiungi Consiglio</button>
+            <button class="btn waves-effect amber darken-2" onclick="openForm('intervento')">Aggiungi Intervento</button>
+            <button class="btn waves-effect brown" onclick="openForm('reportRagazzo')">Report Ragazzo</button>
+            <button class="btn waves-effect brown" onclick="openForm('reportConsiglio')">Report Consiglio</button>
+            <button class="btn waves-effect grey" onclick="openForm('reportRagazzoDoc')">Crea Report Docs</button>
           </div>
         </div>
       </div>
