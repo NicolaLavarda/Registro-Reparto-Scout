@@ -72,6 +72,9 @@
         <label for="incarico2">Secondo Incarico:</label>
         <select id="incarico2" name="incarico2"></select>
     </div>
+
+    <label for="nota">Nota:</label>
+    <textarea name="nota" id="nota" rows="3" placeholder="Quale scuola fa? Quali sono i suoi hobby?"></textarea>
     
     <label for="data">Data:</label>
     <input type="date" id="data" name="data">
@@ -189,6 +192,7 @@
         squadriglia: form.squadriglia.value,
         ruolo: form.ruolo.value,
         incarico: incaricoFinale, // Usa il valore concatenato
+        nota: form.nota.value,
         data: form.data.value
       };
 
@@ -210,6 +214,7 @@
             form.squadriglia.value = "";
             form.ruolo.value = "";
             form.incarico.value = "";
+            form.nota.value = "";
             form.data.value = "";
             
             // Nascondi e resetta il secondo campo incarico
