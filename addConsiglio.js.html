@@ -1,0 +1,47 @@
+<script>
+    const button = document.getElementById('saveButton');
+
+    function showStatus(message, isSuccess = true) {
+        const statusMessage = document.getElementById('statusMessage');
+        statusMessage.textContent = message;
+        statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
+        statusMessage.style.display = 'inline';
+        setTimeout(() => {
+            statusMessage.style.display = 'none';
+        }, 3000);
+    }
+
+    function salvaDati() {
+        button.disabled = true;
+
+        const tema = document.getElementById('tema').value.trim();
+
+        if (!tema) {
+            showStatus("Inserisci un tema valido.", false);
+            button.disabled = false;
+            return;
+        }
+
+        const form = Object.fromEntries(new FormData(document.getElementById('form')).entries());
+        showStatus("Salvataggio in corso...", true);
+
+        google.script.run
+            .withSuccessHandler(function() {
+                const checkmark = document.getElementById('checkmark');
+                checkmark.style.display = 'inline';
+                showStatus("Salvataggio completato!", true);
+
+                setTimeout(() => {
+                    checkmark.style.display = 'none';
+                    button.disabled = false;
+                    document.getElementById('form').reset();
+                }, 2000);
+            })
+            .withFailureHandler(function(err) {
+                console.error('Errore addConsiglio:', err);
+                showStatus("Errore salvataggio consiglio. Controlla log.", false);
+                button.disabled = false;
+            })
+            .addConsiglio(form);
+    }
+</script>

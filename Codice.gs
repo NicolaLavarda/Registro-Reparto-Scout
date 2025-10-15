@@ -18,6 +18,11 @@ function getNextId(sheet, colonna, prefisso) {
   return prefisso + Utilities.formatString("%03d", maxIdNum + 1);
 }
 
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename)
+      .getContent();
+}
+
 /**
  * Registra un nuovo anno scout nel foglio "Registro anni".
  * Aggiorna la data di fine dell'anno precedente, se presente.
@@ -1598,9 +1603,7 @@ function doGet() {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-// Questa funzione separa l'HTML dal JS e restituisce un oggetto
 function loadForm(type) {
-  console.log("Sono in load Form")
   let fileName = '';
   switch (type) {
     case 'ragazzo': fileName = 'addRagazzo'; break;
@@ -1615,32 +1618,9 @@ function loadForm(type) {
     case 'reportRagazzo': fileName = 'reportRagazzo'; break;
     case 'reportConsiglio': fileName = 'reportConsiglio'; break;
     case 'reportRagazzoDoc': fileName = 'reportRagazzoDoc'; break;
-    default: 
-      console.log("Default error case");
-      return { html: '<p>Modulo non trovato</p>', js: '' };
+    default:
+      throw new Error('Modulo non trovato: ' + type);
   }
-
-  try {
-    console.log("Try di load Form")
-    const rawContent = HtmlService.createTemplateFromFile(fileName).getRawContent();
-    
-    // Espressione regolare per estrarre il contenuto del tag <script>
-    const scriptRegex = /<script>([\s\S]*?)<\/script>/i;
-    const match = rawContent.match(scriptRegex);
-    
-    // Estrae il JS se esiste, altrimenti stringa vuota
-    const js = match ? match[1] : '';
-    // Rimuove il tag <script> dall'HTML
-    const html = rawContent.replace(scriptRegex, '');
-
-    console.log("HTML: ", html)
-    console.log("JS: ", js)
-    
-    return { html: html, js: js };
-
-  } catch (e) {
-    Logger.log("Errore in loadForm: " + e.message);
-    return { html: `<p>Errore caricando ${fileName}: ${e.message}</p>`, js: '' };
-  }
+  return HtmlService.createHtmlOutputFromFile(fileName).getContent();
 }
 

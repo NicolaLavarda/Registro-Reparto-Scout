@@ -1,0 +1,192 @@
+<script>
+    const nameToId = {};
+    const buttons = document.querySelectorAll('input[type="button"]');
+
+    function showStatus(message, isSuccess = true) {
+        const statusMessage = document.getElementById('statusMessage');
+        statusMessage.textContent = message;
+        statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
+        statusMessage.style.display = 'inline';
+        setTimeout(() => {
+            statusMessage.style.display = 'none';
+        }, 3000);
+    }
+
+    // Funzione per resettare i campi opzionali
+    function resetOptionalFields() {
+        // Reset campi collaboratore
+        document.getElementById('ragazzoInsiemeInput').value = '';
+        document.getElementById('ragazzoInsiemeId').value = '';
+        document.getElementById('maestroInput').value = '';
+        document.getElementById('maestroId').value = '';
+        document.getElementById('collaborator-container').style.display = 'none';
+        document.getElementById('add-collaborator-link').style.display = 'block';
+
+        // Reset campo nota
+        document.getElementById('notaAggiuntiva').value = '';
+        document.getElementById('daNotificare').checked = false;
+        document.getElementById('note-container').style.display = 'none';
+        document.getElementById('add-note-link').style.display = 'block';
+    }
+
+    window.onload = function() {
+        google.script.run.withSuccessHandler(function(data) {
+            const datalist = document.getElementById('ragazziList');
+            datalist.innerHTML = '';
+            data.forEach(row => {
+                const opt = document.createElement('option');
+                opt.value = row[1]; // Nome Cognome
+                datalist.appendChild(opt);
+                nameToId[row[1]] = row[0];
+            });
+        }).getRagazziList();
+    };
+
+    // Aggiorna la select delle specialità quando cambia il ragazzo
+    document.getElementById('ragazzoInput').addEventListener('input', function() {
+        const input = this.value.trim();
+        const select = document.getElementById('specialitaSelect');
+        select.innerHTML = '<option value="">Seleziona specialità...</option>';
+
+        const idRagazzo = nameToId[input];
+        if (!idRagazzo) {
+            document.getElementById('ragazzoId').value = "";
+            return;
+        }
+
+        document.getElementById('ragazzoId').value = idRagazzo;
+        showStatus("Recupero specialità in corso...", true);
+
+        google.script.run
+            .withSuccessHandler(function(data) {
+                showStatus("Specialità caricate!", true);
+                if (!data || data.length === 0) return;
+                data.forEach(row => {
+                    const option = document.createElement('option');
+                    option.value = row[1];
+                    option.textContent = row[2];
+                    select.appendChild(option);
+                });
+            })
+            .withFailureHandler(function(err) {
+                console.error('Errore getSpecialitaByRagazzo:', err);
+                showStatus("Errore nel recuperare le specialità.", false);
+            })
+            .getSpecialitaByRagazzo(idRagazzo);
+    });
+
+    // Listener per la gestione dei campi opzionali
+    document.getElementById('add-collaborator-link').addEventListener('click', function(e) {
+        e.preventDefault();
+        this.style.display = 'none';
+        document.getElementById('collaborator-container').style.display = 'flex';
+    });
+
+    document.getElementById('add-note-link').addEventListener('click', function(e) {
+        e.preventDefault();
+        this.style.display = 'none';
+        document.getElementById('note-container').style.display = 'flex';
+    });
+
+    // Listener per mappare nome -> ID dei campi opzionali
+    document.getElementById('ragazzoInsiemeInput').addEventListener('input', function() {
+        document.getElementById('ragazzoInsiemeId').value = nameToId[this.value.trim()] || "";
+    });
+
+    document.getElementById('maestroInput').addEventListener('input', function() {
+        document.getElementById('maestroId').value = nameToId[this.value.trim()] || "";
+    });
+
+    // Aggiunge i listener ai pulsanti
+    document.getElementById('btnNormale').addEventListener('click', () => salvaDati('normale'));
+    document.getElementById('btnNuovaSpecialita').addEventListener('click', () => salvaDati('nuovaSpecialita'));
+    document.getElementById('btnNuovaProva').addEventListener('click', () => salvaDati('nuovaProva'));
+
+    function salvaDati(tipo) {
+        const button = document.activeElement;
+        buttons.forEach(b => b.disabled = true);
+
+        const formElement = document.getElementById('form');
+        const ragazzoId = document.getElementById('ragazzoId').value;
+        let numero_prova = document.getElementById('num_prova').value;
+        const specialitaId = document.getElementById('specialitaSelect').value;
+        const descrizione = document.getElementById('descrizione').value.trim();
+
+        if (!ragazzoId) {
+            showStatus("Seleziona un ragazzo valido dalla lista.", false);
+            buttons.forEach(b => b.disabled = false); return;
+        }
+        if (!specialitaId) {
+            showStatus("Seleziona una specialità.", false);
+            buttons.forEach(b => b.disabled = false); return;
+        }
+        if (!numero_prova || numero_prova < 1 || numero_prova > 5) {
+            showStatus("Inserisci un numero di prova valido (1-5).", false);
+            buttons.forEach(b => b.disabled = false); return;
+        }
+        if (!descrizione) {
+            showStatus("Inserisci la descrizione della prova.", false);
+            buttons.forEach(b => b.disabled = false); return;
+        }
+
+        const formData = {
+            ragazzo: ragazzoId,
+            id_specialita: specialitaId,
+            num_prova: numero_prova,
+            insieme: document.getElementById('ragazzoInsiemeInput').value,
+            insieme_id: document.getElementById('ragazzoInsiemeId').value,
+            maestro: document.getElementById('maestroInput').value,
+            maestro_id: document.getElementById('maestroId').value,
+            descrizione: descrizione,
+            nota: document.getElementById('notaAggiuntiva').value.trim(),
+            da_notificare: document.getElementById('daNotificare').checked ? 'Sì' : 'No', // CHECKBOX: se spuntata, invia 'Sì', altrimenti 'No'
+            data: document.getElementById('data').value
+        };
+
+        showStatus("Salvataggio in corso...", true);
+
+        google.script.run
+            .withSuccessHandler(() => {
+                const checkmark = document.getElementById('checkmark');
+                checkmark.style.display = 'inline';
+                showStatus("Salvataggio completato!", true);
+
+                setTimeout(() => {
+                    checkmark.style.display = 'none';
+                    buttons.forEach(b => b.disabled = false);
+
+                    switch (tipo) {
+                        case 'normale':
+                            formElement.reset();
+                            document.getElementById('ragazzoId').value = "";
+                            document.getElementById('specialitaSelect').innerHTML = '<option value="">Seleziona specialità...</option>';
+                            resetOptionalFields();
+                            break;
+                        case 'nuovaSpecialita':
+                            document.getElementById('specialitaSelect').selectedIndex = 0;
+                            document.getElementById('descrizione').value = '';
+                            document.getElementById('num_prova').value = '';
+                            document.getElementById('data').value = '';
+                            resetOptionalFields();
+                            break;
+                        case 'nuovaProva':
+                            if (parseInt(numero_prova, 10) < 5) {
+                                document.getElementById('num_prova').value = parseInt(numero_prova, 10) + 1;
+                            } else {
+                                document.getElementById('num_prova').value = "";
+                            }
+                            document.getElementById('descrizione').value = '';
+                            document.getElementById('data').value = '';
+                            resetOptionalFields();
+                            break;
+                    }
+                }, 2000);
+            })
+            .withFailureHandler(err => {
+                console.error('Errore addProva:', err);
+                showStatus("Errore salvataggio prova. Controlla log.", false);
+                buttons.forEach(b => b.disabled = false);
+            })
+            .addProva(formData);
+    }
+</script>

@@ -1,0 +1,105 @@
+<script>
+    if (!window._reportRagazzoInitialized) {
+      window._reportRagazzoInitialized = true;
+
+      const nameToId = {};
+      const buttons = document.querySelectorAll('input[type="button"]');
+
+      // Funzione per mostrare messaggi di stato
+      function showStatus(message, isSuccess = true) {
+          const statusMessage = document.getElementById('statusMessage');
+          statusMessage.textContent = message;
+          statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
+          statusMessage.style.display = 'inline';
+          setTimeout(() => {
+              statusMessage.style.display = 'none';
+          }, 3000);
+      }
+
+      // Popola datalist dei ragazzi
+      window.initForm = function initForm() {
+        google.script.run.withSuccessHandler(function(data) {
+          const datalist = document.getElementById('ragazziList');
+          datalist.innerHTML = '';
+          data.forEach(row => {
+            if (row[1]) {
+              const fullName = row[1].trim();
+              const opt = document.createElement('option');
+              opt.value = fullName;
+              datalist.appendChild(opt);
+              nameToId[fullName] = row[0];
+            }
+          });
+        }).getRagazziList();
+      }
+
+      // Compatibilità: esegui initForm se la pagina è già pronta, altrimenti lo leghiamo al DOMContentLoaded.
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          try { window.initForm(); } catch(e){ console.error(e); }
+        });
+      } else {
+        try { window.initForm(); } catch(e){ console.error(e); }
+      }
+
+      // Aggiorna campo nascosto ragazzo
+      document.getElementById('ragazzoInput').addEventListener('input', function() {
+          const inputValue = this.value.trim();
+          document.getElementById('ragazzoId').value = nameToId[inputValue] || "";
+      });
+
+      /**
+       * @param {boolean} keepRagazzo -> mantiene il ragazzo selezionato
+       */
+      function salvaDati(keepRagazzo) {
+          const ragazzoInput = document.getElementById('ragazzoInput');
+          const ragazzoId = document.getElementById('ragazzoId').value;
+          const metaText = document.getElementById('meta').value.trim();
+          const dataValue = document.getElementById('data').value;
+
+          if (!ragazzoId) {
+              showStatus("Seleziona un ragazzo valido dalla lista.", false);
+              return;
+          }
+          if (!metaText) {
+              showStatus("Inserisci il testo della meta.", false);
+              return;
+          }
+
+          const data = {
+              ragazzo: ragazzoId,
+              meta: metaText,
+              data: dataValue
+          };
+
+          buttons.forEach(b => b.disabled = true);
+          showStatus("Salvataggio in corso...", true);
+
+          google.script.run
+              .withSuccessHandler(function() {
+                  const checkmark = document.getElementById('checkmark');
+                  checkmark.style.display = 'inline';
+                  showStatus("Salvataggio completato!", true);
+
+                  setTimeout(() => {
+                      checkmark.style.display = 'none';
+                      buttons.forEach(b => b.disabled = false);
+
+                      document.getElementById('meta').value = "";
+                      document.getElementById('data').value = "";
+
+                      if (!keepRagazzo) {
+                          ragazzoInput.value = "";
+                          document.getElementById('ragazzoId').value = "";
+                      }
+                  }, 2000);
+              })
+              .withFailureHandler(function(err) {
+                  console.error('Errore addMeta:', err);
+                  showStatus("Errore salvataggio meta.", false);
+                  buttons.forEach(b => b.disabled = false);
+              })
+              .addMeta(data);
+      }
+    }
+</script>
