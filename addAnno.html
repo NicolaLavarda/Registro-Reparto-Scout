@@ -118,7 +118,7 @@
             <input type="date" id="data">
 
             <div class="button-container">
-                <input type="button" id="saveButton" value="Salva" onclick="salvaDati()">
+                <input type="button" id="saveButton" value="Salva" onclick="salvaDati_anno()">
             </div>
             <div style="text-align: center;">
                 <span id="checkmark" style="display:none;">✔️</span>
@@ -128,11 +128,13 @@
     </div>
 
     <script>
-        const nameToId = {};
-        const buttons = document.querySelectorAll('input[type="button"]');
+      if (!window._addAnnoInitialized) {
+        window._addAnnoInitialized = true;
+
+        const buttons_anno = document.querySelectorAll('input[type="button"]');
 
         // Funzione per mostrare messaggi di stato
-        function showStatus(message, isSuccess = true) {
+        function showStatus_anno(message, isSuccess = true) {
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = message;
             statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
@@ -142,36 +144,56 @@
             }, 3000);
         }
 
-        function salvaDati() {
+        window.initForm = function initForm() {
+          // Funzione vuota per compatibilità
+          console.log("Entrato in addAnno");
+        }
+
+        // Compatibilità: esegui initForm se la pagina è già pronta, altrimenti lo leghiamo al DOMContentLoaded.
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            try { window.initForm(); } catch(e){ console.error(e); }
+          });
+        } else {
+          try { window.initForm(); } catch(e){ console.error(e); }
+        }
+
+        function salvaDati_anno() {
             const dataValue = document.getElementById('data').value;
+
+            if (!dataValue) {
+                showStatus_anno("Seleziona una data.", false);
+                return;
+            }
 
             const data = {
                 inizio: dataValue
             };
 
-            buttons.forEach(b => b.disabled = true);
-            showStatus("Salvataggio in corso...", true);
+            buttons_anno.forEach(b => b.disabled = true);
+            showStatus_anno("Salvataggio in corso...", true);
 
             google.script.run
                 .withSuccessHandler(function() {
                     const checkmark = document.getElementById('checkmark');
                     checkmark.style.display = 'inline';
-                    showStatus("Salvataggio completato!", true);
+                    showStatus_anno("Salvataggio completato!", true);
 
                     setTimeout(() => {
                         checkmark.style.display = 'none';
-                        buttons.forEach(b => b.disabled = false);
+                        buttons_anno.forEach(b => b.disabled = false);
 
                         document.getElementById('data').value = "";
                     }, 2000);
                 })
                 .withFailureHandler(function(err) {
                     console.error('Errore addAnno:', err);
-                    showStatus("Errore salvataggio anno.", false);
-                    buttons.forEach(b => b.disabled = false);
+                    showStatus_anno("Errore salvataggio anno.", false);
+                    buttons_anno.forEach(b => b.disabled = false);
                 })
                 .addAnno(data);
         }
+      }
     </script>
 </body>
 </html>

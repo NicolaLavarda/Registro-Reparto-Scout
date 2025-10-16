@@ -188,23 +188,17 @@
              color: inherit !important;
         }
         .prova-da-notificare .icon {
-            /* Reimposta il colore predefinito delle icone (che è #999 per .edit e nulla/ereditato per .delete) */
-            /* Usiamo il grigio generico se non è specificato in .icon (vedi riga 126 nel tuo codice originale) */
             color: #999 !important; 
-            /* Rimuovi il grassetto forzato da .prova-da-notificare */
             font-weight: normal !important; 
         }
         /* Stili per ripristinare il colore al passaggio del mouse */
         .prova-da-notificare .icon.edit:hover {
-            /* Il colore al passaggio del mouse per l'icona Modifica è #4CAF50 */
             color: #4CAF50 !important; 
         }
         .prova-da-notificare .icon.delete:hover {
-            /* Il colore al passaggio del mouse per l'icona Elimina è #f44336 */
             color: #f44336 !important; 
         }
 
-        /* Nuovi stili per il selettore "Visualizza/Modifica" */
         #modeSwitcher {
             display: none; /* Inizialmente nascosto */
             justify-content: center;
@@ -221,11 +215,11 @@
         }
         .mode-button:first-child {
             border-radius: 8px 0 0 8px;
-            margin-right: 2px; /* Per far combaciare i bordi */
+            margin-right: 2px;
         }
         .mode-button:last-child {
             border-radius: 0 8px 8px 0;
-            margin-left: -2px; /* Per far combaciare i bordi */
+            margin-left: -2px;
         }
         .mode-button.active {
             background-color: #4CAF50;
@@ -233,18 +227,17 @@
             border-color: #4CAF50;
         }
 
-        /* Nuovi stili per il pulsante di espansione/chiusura Progressione Personale */
         .accordion-button {
-            display: flex; /* Allinea testo e icona */
-            justify-content: space-between; /* Icona a destra */
+            display: flex;
+            justify-content: space-between;
             align-items: center;
             width: 100%;
             padding: 10px 0;
             font-size: 1.5em;
             font-weight: 700;
-            background-color: transparent; /* Sfondo sempre trasparente */
+            background-color: transparent;
             border: none;
-            border-bottom: 2px solid #ddd; /* Linea grigia sotto il titolo/pulsante */
+            border-bottom: 2px solid #ddd;
             padding-bottom: 5px;
             cursor: pointer;
             color: #444;
@@ -255,18 +248,16 @@
         }
 
         .accordion-button:hover {
-            color: #333; /* Leggero scurimento al hover (opzionale, ma mantiene la sobrietà) */
-            background-color: transparent; /* NESSUN CAMBIO DI SFONDO */
+            color: #333;
+            background-color: transparent;
         }
 
         .accordion-icon {
-            /* Freccia più piccola */
             font-size: 1em; 
             color: #888;
             transition: transform 0.3s ease;
         }
 
-        /* Rotazione dell'icona quando l'accordion è aperto */
         .accordion-button.open .accordion-icon {
             transform: rotate(180deg);
         }
@@ -279,7 +270,6 @@
             padding-top: 10px;
         }
 
-        /* --- STILI PER PROVE ESPANDIBILI --- */
         .prova-item {
             cursor: pointer;
             transition: background-color 0.2s;
@@ -303,7 +293,6 @@
         .prova-details strong {
             color: #555;
         }
-        /* --- FINE STILI PROVE --- */
     </style>
 </head>
 <body>
@@ -355,18 +344,21 @@
     </div>
 
     <script>
-        const nameToId = {};
-        const mostraBtn = document.getElementById('mostraBtn');
-        const ragazzoInput = document.getElementById('ragazzoInput');
-        const reportDisplayArea = document.getElementById('reportDisplayArea');
-        const modeSwitcher = document.getElementById('modeSwitcher');
-        const viewBtn = document.getElementById('viewBtn');
-        const editBtn = document.getElementById('editBtn');
-        const creaDocBtn = document.getElementById('creaDocBtn');
-        let currentRagazzoId;
-        let currentMode = 'view';
+      if (!window._reportRagazzoInitialized) {
+        window._reportRagazzoInitialized = true;
 
-        function showStatus(message, isSuccess = true) {
+        const nameToId_report_ragazzo = {};
+        const mostraBtn_report_ragazzo = document.getElementById('mostraBtn');
+        const ragazzoInput_report_ragazzo = document.getElementById('ragazzoInput');
+        const reportDisplayArea_report_ragazzo = document.getElementById('reportDisplayArea');
+        const modeSwitcher_report_ragazzo = document.getElementById('modeSwitcher');
+        const viewBtn_report_ragazzo = document.getElementById('viewBtn');
+        const editBtn_report_ragazzo = document.getElementById('editBtn');
+        const creaDocBtn_report_ragazzo = document.getElementById('creaDocBtn');
+        let currentRagazzoId_report_ragazzo;
+        let currentMode_report_ragazzo = 'view';
+
+        function showStatus_report_ragazzo(message, isSuccess = true) {
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = message;
             statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
@@ -376,26 +368,24 @@
             }, 3000);
         }
 
-        // Funzione per nascondere/mostrare le icone di modifica e cancellazione
-        function toggleIconsVisibility() {
+        function toggleIconsVisibility_report_ragazzo() {
             const icons = document.querySelectorAll('.icon.edit, .icon.delete');
             icons.forEach(icon => {
-                icon.style.display = currentMode === 'edit' ? 'inline-block' : 'none';
+                icon.style.display = currentMode_report_ragazzo === 'edit' ? 'inline-block' : 'none';
             });
         }
         
-        function toggleMode(mode) {
-            currentMode = mode;
-            viewBtn.classList.remove('active');
-            editBtn.classList.remove('active');
+        function toggleMode_report_ragazzo(mode) {
+            currentMode_report_ragazzo = mode;
+            viewBtn_report_ragazzo.classList.remove('active');
+            editBtn_report_ragazzo.classList.remove('active');
             document.getElementById(mode + 'Btn').classList.add('active');
-            if (currentRagazzoId) {
-                toggleIconsVisibility(); // CHIAMA LA NUOVA FUNZIONE
+            if (currentRagazzoId_report_ragazzo) {
+                toggleIconsVisibility_report_ragazzo();
             }
         }
 
-        // Funzione per espandere/comprimere i dettagli della prova
-        function addProvaToggleListeners() {
+        function addProvaToggleListeners_report_ragazzo() {
             document.querySelectorAll('.prova-item').forEach(item => {
                 item.addEventListener('click', event => {
                     if (event.target.classList.contains('icon')) {
@@ -411,15 +401,15 @@
             });
         }
 
-        function generaReport(data) {
-            reportDisplayArea.style.display = 'block';
-            modeSwitcher.style.display = 'flex'; // Mostra il selettore dopo il primo report
-            creaDocBtn.disabled = false; // Abilita il pulsante per creare il doc
-            currentRagazzoId = data.id;
+        function generaReport_report_ragazzo(data) {
+            reportDisplayArea_report_ragazzo.style.display = 'block';
+            modeSwitcher_report_ragazzo.style.display = 'flex';
+            creaDocBtn_report_ragazzo.disabled = false;
+            currentRagazzoId_report_ragazzo = data.id;
 
             if (!data) {
-                reportDisplayArea.innerHTML = '<div class="card"><h1 style="color:#f44336;">Nessun dato trovato</h1><p style="text-align:center;">Verifica il nome del ragazzo e riprova.</p></div>';
-                creaDocBtn.disabled = true; // Disabilita se non ci sono dati
+                reportDisplayArea_report_ragazzo.innerHTML = '<div class="card"><h1 style="color:#f44336;">Nessun dato trovato</h1><p style="text-align:center;">Verifica il nome del ragazzo e riprova.</p></div>';
+                creaDocBtn_report_ragazzo.disabled = true;
                 return;
             }
 
@@ -457,7 +447,7 @@
                 </div>
             `;
             document.getElementById("editBaseInfo").addEventListener("click", () => {
-                google.script.run.showAddInfoRagazzo_sub(currentRagazzoId);
+                google.script.run.showAddInfoRagazzo_sub(currentRagazzoId_report_ragazzo);
             });
 
 
@@ -466,8 +456,8 @@
                 if (data.mete && data.mete.length > 0) {
                     metaeImpHTML += '<h3>Mete:</h3><ul>';
                     data.mete.forEach(m => {
-                        const editIcon = `<span class="icon edit" onclick="editMetaItem('${m.id}')" title="Modifica meta">&#9998;</span>`;
-                        const deleteIcon = `<span class="icon delete" onclick="deleteItem('${m.id}', 'meta')" title="Elimina meta">&#128465;</span>`;
+                        const editIcon = `<span class="icon edit" onclick="editMetaItem_report_ragazzo('${m.id}')" title="Modifica meta">&#9998;</span>`;
+                        const deleteIcon = `<span class="icon delete" onclick="deleteItem_report_ragazzo('${m.id}', 'meta')" title="Elimina meta">&#128465;</span>`;
                         metaeImpHTML += `<li>
                             <div class="item-row">
                                 <div class="item-text">${m.meta}</div>
@@ -482,8 +472,8 @@
                 if (data.impegni && data.impegni.length > 0) {
                     metaeImpHTML += '<h3>Impegni:</h3><ul>';
                     data.impegni.forEach(i => {
-                        const editIcon = `<span class="icon edit" onclick="editImpegnoItem('${i.id}')" title="Modifica impegno">&#9998;</span>`;
-                        const deleteIcon = `<span class="icon delete" onclick="deleteItem('${i.id}', 'impegno')" title="Elimina impegno">&#128465;</span>`;
+                        const editIcon = `<span class="icon edit" onclick="editImpegnoItem_report_ragazzo('${i.id}')" title="Modifica impegno">&#9998;</span>`;
+                        const deleteIcon = `<span class="icon delete" onclick="deleteItem_report_ragazzo('${i.id}', 'impegno')" title="Elimina impegno">&#128465;</span>`;
                         metaeImpHTML += `<li>
                             <div class="item-row">
                                 <div class="item-text">${i.impegno}</div>
@@ -503,8 +493,8 @@
             let specHTML = '<h2>Specialità e Brevetti</h2>';
             if (data.specialita && data.specialita.length > 0) {
                 data.specialita.forEach(s => {
-                    const editIcon = `<span class="icon edit" onclick="editSpecialitaItem('${s.id}')" title="Modifica specialità">&#9998;</span>`;
-                    const deleteIcon = `<span class="icon delete" onclick="deleteSpecialita('${s.id}')" title="Elimina specialità">&#128465;</span>`;
+                    const editIcon = `<span class="icon edit" onclick="editSpecialitaItem_report_ragazzo('${s.id}')" title="Modifica specialità">&#9998;</span>`;
+                    const deleteIcon = `<span class="icon delete" onclick="deleteSpecialita_report_ragazzo('${s.id}')" title="Elimina specialità">&#128465;</span>`;
                     specHTML += `<div class="item-row">
                         <div class="item-text"><h3>${s.nome}</h3></div>
                         <div>${editIcon}  ${deleteIcon}</div>
@@ -513,9 +503,9 @@
                         specHTML += '<ul>';
                         s.prove.forEach(p => {
                             const daNotificareClass = (p.da_notificare && p.da_notificare.trim().toLowerCase() === 'sì') ? 'prova-da-notificare' : '';
-                            const editProvaIcon = `<span class="icon edit" onclick="editProvaItem('${p.id}')" title="Modifica prova">&#9998;</span>`;
-                            const deleteProvaIcon = `<span class="icon delete" onclick="deleteProva('${p.id}')" title="Elimina prova">&#128465;</span>`;
-                            const detailsId = `details-${p.id}`; // ID unico per i dettagli
+                            const editProvaIcon = `<span class="icon edit" onclick="editProvaItem_report_ragazzo('${p.id}')" title="Modifica prova">&#9998;</span>`;
+                            const deleteProvaIcon = `<span class="icon delete" onclick="deleteProva_report_ragazzo('${p.id}')" title="Elimina prova">&#128465;</span>`;
+                            const detailsId = `details-${p.id}`;
                             specHTML += `<li>
                                 <div class="item-row prova-item ${daNotificareClass}" data-target="${detailsId}">
                                     <div class="item-text">${p.descrizione}</div>
@@ -541,7 +531,7 @@
                 specHTML += '<p class="no-data">Nessuna specialità o brevetto registrato.</p>';
             }
             specDiv.innerHTML = specHTML;
-            addProvaToggleListeners(); // Aggiunge i listener dopo aver creato l'HTML
+            addProvaToggleListeners_report_ragazzo();
 
             let ppHTML = "";
             if (data.PP && data.PP.length > 0) {
@@ -556,8 +546,8 @@
                         ppHTML += `<h3>${item.dataStr}</h3><ul>`;
                         lastDate = item.dataStr;
                     }
-                    const editIcon = `<span class="icon edit" onclick="editPP('${item.id}')" title="Modifica progressione">&#9998;</span>`;
-                    const deleteIcon = `<span class="icon delete" onclick="deletePP('${item.id}')" title="Elimina progressione">&#128465;</span>`;
+                    const editIcon = `<span class="icon edit" onclick="editPP_report_ragazzo('${item.id}')" title="Modifica progressione">&#9998;</span>`;
+                    const deleteIcon = `<span class="icon delete" onclick="deletePP_report_ragazzo('${item.id}')" title="Elimina progressione">&#128465;</span>`;
                     ppHTML += `<li>
                         <div class="item-row">
                             <div class="item-text">${item.testo}</div>
@@ -608,58 +598,58 @@
             }
             storicoDiv.innerHTML = StoricoHTML;
             
-            toggleIconsVisibility();
+            toggleIconsVisibility_report_ragazzo();
         }
 
-        function mostraRegistro(forceReload = false) {
-            const nomeRaw = ragazzoInput.value || '';
+        function mostraRegistro_report_ragazzo(forceReload = false) {
+            const nomeRaw = ragazzoInput_report_ragazzo.value || '';
             const nome = nomeRaw.trim();
 
-            if (!forceReload && (!nome || !nameToId[nome])) {
-                showStatus('Inserisci un nome valido o scegli dalla lista.', false);
+            if (!forceReload && (!nome || !nameToId_report_ragazzo[nome])) {
+                showStatus_report_ragazzo('Inserisci un nome valido o scegli dalla lista.', false);
                 return;
             }
 
-            let id = forceReload ? currentRagazzoId : nameToId[nome];
+            let id = forceReload ? currentRagazzoId_report_ragazzo : nameToId_report_ragazzo[nome];
             if (!id) {
-                const keys = Object.keys(nameToId);
+                const keys = Object.keys(nameToId_report_ragazzo);
                 const match = keys.find(k => k.toLowerCase() === nome.toLowerCase());
                 if (match) {
-                    id = nameToId[match];
+                    id = nameToId_report_ragazzo[match];
                 } else {
-                    showStatus('Ragazzo non trovato! Prova a selezionarlo dalla lista.', false);
+                    showStatus_report_ragazzo('Ragazzo non trovato! Prova a selezionarlo dalla lista.', false);
                     return;
                 }
             }
 
             if (!forceReload) {
-                mostraBtn.disabled = true;
-                creaDocBtn.disabled = true;
-                mostraBtn.textContent = 'Caricamento...';
-                ragazzoInput.classList.add('loading');
-                showStatus("Caricamento report...", true);
+                mostraBtn_report_ragazzo.disabled = true;
+                creaDocBtn_report_ragazzo.disabled = true;
+                mostraBtn_report_ragazzo.textContent = 'Caricamento...';
+                ragazzoInput_report_ragazzo.classList.add('loading');
+                showStatus_report_ragazzo("Caricamento report...", true);
             }
 
             google.script.run
                 .withSuccessHandler(function(data) {
-                    mostraBtn.disabled = false;
-                    mostraBtn.textContent = 'Mostra';
-                    ragazzoInput.classList.remove('loading');
-                    generaReport(data);
-                    if (!forceReload) showStatus("Report caricato con successo!", true);
+                    mostraBtn_report_ragazzo.disabled = false;
+                    mostraBtn_report_ragazzo.textContent = 'Mostra';
+                    ragazzoInput_report_ragazzo.classList.remove('loading');
+                    generaReport_report_ragazzo(data);
+                    if (!forceReload) showStatus_report_ragazzo("Report caricato con successo!", true);
                 })
                 .withFailureHandler(function(err) {
                     console.error('Errore getReportRagazzoData:', err);
-                    mostraBtn.disabled = false;
-                    creaDocBtn.disabled = true;
-                    mostraBtn.textContent = 'Mostra';
-                    ragazzoInput.classList.remove('loading');
-                    showStatus('Errore nel recupero del report.', false);
+                    mostraBtn_report_ragazzo.disabled = false;
+                    creaDocBtn_report_ragazzo.disabled = true;
+                    mostraBtn_report_ragazzo.textContent = 'Mostra';
+                    ragazzoInput_report_ragazzo.classList.remove('loading');
+                    showStatus_report_ragazzo('Errore nel recupero del report.', false);
                 })
                 .getReportRagazzoData(id);
         }
 
-        function popolaDatalist() {
+        function popolaDatalist_report_ragazzo() {
             google.script.run
                 .withSuccessHandler(function(rows) {
                     try {
@@ -673,106 +663,105 @@
                                 const opt = document.createElement('option');
                                 opt.value = fullName;
                                 datalist.appendChild(opt);
-                                nameToId[fullName] = row[0];
+                                nameToId_report_ragazzo[fullName] = row[0];
                             }
                         });
                     } catch (e) {
                         console.error('Errore nel success handler di getRagazziList:', e);
-                        showStatus('Errore nel caricamento della lista dei ragazzi.', false);
+                        showStatus_report_ragazzo('Errore nel caricamento della lista dei ragazzi.', false);
                     }
                 })
                 .withFailureHandler(function(err) {
                     console.error('Errore getRagazziList:', err);
-                    showStatus('Errore nel recupero della lista dei ragazzi.', false);
+                    showStatus_report_ragazzo('Errore nel recupero della lista dei ragazzi.', false);
                 })
                 .getRagazziList(true);
         }
         
-        function avviaCreazioneDoc() {
-            if (!currentRagazzoId) {
-                showStatus('Nessun ragazzo selezionato per creare il documento.', false);
+        function avviaCreazioneDoc_report_ragazzo() {
+            if (!currentRagazzoId_report_ragazzo) {
+                showStatus_report_ragazzo('Nessun ragazzo selezionato per creare il documento.', false);
                 return;
             }
-            creaDocBtn.disabled = true;
-            creaDocBtn.textContent = 'Creazione...';
-            showStatus('Creazione del documento in corso...', true);
+            creaDocBtn_report_ragazzo.disabled = true;
+            creaDocBtn_report_ragazzo.textContent = 'Creazione...';
+            showStatus_report_ragazzo('Creazione del documento in corso...', true);
 
             google.script.run
                 .withSuccessHandler(function(response) {
-                    creaDocBtn.disabled = false;
-                    creaDocBtn.textContent = 'Crea Google Doc';
+                    creaDocBtn_report_ragazzo.disabled = false;
+                    creaDocBtn_report_ragazzo.textContent = 'Crea Google Doc';
                     if (response.success) {
-                        showStatus(response.message, true);
+                        showStatus_report_ragazzo(response.message, true);
                     } else {
-                        showStatus('Errore: ' + response.message, false);
+                        showStatus_report_ragazzo('Errore: ' + response.message, false);
                     }
                 })
                 .withFailureHandler(function(err) {
-                    creaDocBtn.disabled = false;
-                    creaDocBtn.textContent = 'Crea Google Doc';
-                    showStatus('Errore imprevisto nella creazione del documento.', false);
+                    creaDocBtn_report_ragazzo.disabled = false;
+                    creaDocBtn_report_ragazzo.textContent = 'Crea Google Doc';
+                    showStatus_report_ragazzo('Errore imprevisto nella creazione del documento.', false);
                     console.error('Errore creazione doc:', err);
                 })
-                .creaReportInDoc(currentRagazzoId);
+                .creaReportInDoc(currentRagazzoId_report_ragazzo);
         }
 
-        // Funzioni di modifica e cancellazione
-        function editMetaItem(id) {
+        function editMetaItem_report_ragazzo(id) {
             google.script.run.withSuccessHandler(data => {
                 const nuovoTesto = prompt('Modifica la meta:', data.meta);
                 if (nuovoTesto !== null) {
                     const nuovaData = prompt('Modifica la data (opzionale):', data.data);
                     google.script.run
                         .withSuccessHandler(() => {
-                            showStatus("Meta aggiornata con successo!");
-                            mostraRegistro(true); // ricarica il report
+                            showStatus_report_ragazzo("Meta aggiornata con successo!");
+                            mostraRegistro_report_ragazzo(true);
                         })
-                        .withFailureHandler(err => showStatus("Errore nell'aggiornamento della meta.", false))
+                        .withFailureHandler(err => showStatus_report_ragazzo("Errore nell'aggiornamento della meta.", false))
                         .editMeta({ id: id, meta: nuovoTesto, data: nuovaData });
                 }
             }).getMetaById(id);
         }
 
-        function editImpegnoItem(id) {
+        function editImpegnoItem_report_ragazzo(id) {
             google.script.run.withSuccessHandler(data => {
                 const nuovoTesto = prompt('Modifica l\'impegno:', data.impegno);
                 if (nuovoTesto !== null) {
                     const nuovaData = prompt('Modifica la data (opzionale):', data.data);
                     google.script.run
                         .withSuccessHandler(() => {
-                            showStatus("Impegno aggiornato con successo!");
-                            mostraRegistro(true); // ricarica il report
+                            showStatus_report_ragazzo("Impegno aggiornato con successo!");
+                            mostraRegistro_report_ragazzo(true);
                         })
-                        .withFailureHandler(err => showStatus("Errore nell'aggiornamento dell'impegno.", false))
+                        .withFailureHandler(err => showStatus_report_ragazzo("Errore nell'aggiornamento dell'impegno.", false))
                         .editImpegno({ id: id, impegno: nuovoTesto, data: nuovaData });
                 }
             }).getImpegnoById(id);
         }
 
-        function editSpecialitaItem(id) {
+        function editSpecialitaItem_report_ragazzo(id) {
             google.script.run.withSuccessHandler(data => {
                 const nuovoTesto = prompt('Modifica la specialità:', data.specialita);
                 if (nuovoTesto !== null) {
                     google.script.run
                         .withSuccessHandler(() => {
-                            showStatus("Specialità aggiornata con successo!");
-                            mostraRegistro(true);
+                            showStatus_report_ragazzo("Specialità aggiornata con successo!");
+                            mostraRegistro_report_ragazzo(true);
                         })
-                        .withFailureHandler(err => showStatus("Errore nell'aggiornamento della specialità.", false))
+                        .withFailureHandler(err => showStatus_report_ragazzo("Errore nell'aggiornamento della specialità.", false))
                         .editSpecialita({ id: id, specialita: nuovoTesto, data: data.data });
                 }
             }).getSpecialitaById(id);
         }
 
 
-        function editProvaItem(id) {
+        function editProvaItem_report_ragazzo(id) {
             google.script.run.withSuccessHandler(data => {
                 if (!data) {
-                    showStatus("Dettagli prova non trovati.", false);
+                    showStatus_report_ragazzo("Dettagli prova non trovati.", false);
                     return;
                 }
                 const nuovaDescrizione = prompt('Modifica la descrizione della prova:', data.descrizione || "");
-                if (nuovaDescrizione === null) return; // L'utente ha annullato
+                if (nuovaDescrizione === null) return;
 
                 const nuovoInsieme = prompt('Prova fatta assieme a (lascia vuoto se da solo):', data.insieme || "");
                 if (nuovoInsieme === null) return;
@@ -790,12 +779,11 @@
                 const nuovaData = prompt('Modifica la data (opzionale, formato GG/MM/AAAA):', data.data || "");
                 if (nuovaData === null) return;
 
-                // Cerca l'ID corrispondente al nome (case-insensitive) o imposta stringa vuota
                 const findIdByName = (name) => {
                     const trimmedName = name.trim();
                     if (!trimmedName) return "";
-                    const keyFound = Object.keys(nameToId).find(key => key.toLowerCase() === trimmedName.toLowerCase());
-                    return keyFound ? nameToId[keyFound] : "";
+                    const keyFound = Object.keys(nameToId_report_ragazzo).find(key => key.toLowerCase() === trimmedName.toLowerCase());
+                    return keyFound ? nameToId_report_ragazzo[keyFound] : "";
                 };
 
                 const formData = {
@@ -810,89 +798,89 @@
                 
                 google.script.run
                     .withSuccessHandler(() => {
-                        showStatus("Prova aggiornata con successo!");
-                        mostraRegistro(true);
+                        showStatus_report_ragazzo("Prova aggiornata con successo!");
+                        mostraRegistro_report_ragazzo(true);
                     })
-                    .withFailureHandler(err => showStatus("Errore nell'aggiornamento della prova.", false))
+                    .withFailureHandler(err => showStatus_report_ragazzo("Errore nell'aggiornamento della prova.", false))
                     .editProva(formData);
 
             }).getProvaById(id);
         }
 
-        function editPP(id) {
+        function editPP_report_ragazzo(id) {
             google.script.run.withSuccessHandler(data => {
                 const nuovoTesto = prompt('Modifica la Progressione Personale:', data.PP);
                 if (nuovoTesto !== null) {
                     const nuovaData = prompt('Modifica la data (opzionale):', data.data);
                     google.script.run
                         .withSuccessHandler(() => {
-                            showStatus("Progressione Personale aggiornata con successo!");
-                            mostraRegistro(true);
+                            showStatus_report_ragazzo("Progressione Personale aggiornata con successo!");
+                            mostraRegistro_report_ragazzo(true);
                         })
-                        .withFailureHandler(err => showStatus("Errore nell'aggiornamento della PP.", false))
+                        .withFailureHandler(err => showStatus_report_ragazzo("Errore nell'aggiornamento della PP.", false))
                         .editPP({ id: id, PP: nuovoTesto, data: nuovaData });
                 }
             }).getPPById(id);
         }
 
-        // Funzioni di eliminazione
-        function deleteItem(id, type) {
+        function deleteItem_report_ragazzo(id, type) {
             if (confirm("Sei sicuro di voler eliminare questo elemento?")) {
                 google.script.run
                     .withSuccessHandler(() => {
-                        showStatus("Elemento eliminato con successo!");
-                        mostraRegistro(true);
+                        showStatus_report_ragazzo("Elemento eliminato con successo!");
+                        mostraRegistro_report_ragazzo(true);
                     })
-                    .withFailureHandler(err => showStatus("Errore nell'eliminazione.", false))
+                    .withFailureHandler(err => showStatus_report_ragazzo("Errore nell'eliminazione.", false))
                     [type === 'meta' ? 'deleteMeta' : 'deleteImpegno'](id);
             }
         }
 
-        function deleteSpecialita(id) {
+        function deleteSpecialita_report_ragazzo(id) {
             if (confirm("Sei sicuro di voler eliminare questa specialità e tutte le prove associate?")) {
                 google.script.run
                     .withSuccessHandler(() => {
-                        showStatus("Specialità eliminata con successo!");
-                        mostraRegistro(true);
+                        showStatus_report_ragazzo("Specialità eliminata con successo!");
+                        mostraRegistro_report_ragazzo(true);
                     })
-                    .withFailureHandler(err => showStatus("Errore nell'eliminazione della specialità.", false))
+                    .withFailureHandler(err => showStatus_report_ragazzo("Errore nell'eliminazione della specialità.", false))
                     .deleteSpecialita(id);
             }
         }
 
-        function deleteProva(id) {
+        function deleteProva_report_ragazzo(id) {
             if (confirm("Sei sicuro di voler eliminare questa prova?")) {
                 google.script.run
                     .withSuccessHandler(() => {
-                        showStatus("Prova eliminata con successo!");
-                        mostraRegistro(true);
+                        showStatus_report_ragazzo("Prova eliminata con successo!");
+                        mostraRegistro_report_ragazzo(true);
                     })
-                    .withFailureHandler(err => showStatus("Errore nell'eliminazione della prova.", false))
+                    .withFailureHandler(err => showStatus_report_ragazzo("Errore nell'eliminazione della prova.", false))
                     .deleteProva(id);
             }
         }
 
-        function deletePP(id) {
+        function deletePP_report_ragazzo(id) {
             if (confirm("Sei sicuro di voler eliminare questa progressione personale?")) {
                 google.script.run
                     .withSuccessHandler(() => {
-                        showStatus("Progressione Personale eliminata con successo!");
-                        mostraRegistro(true);
+                        showStatus_report_ragazzo("Progressione Personale eliminata con successo!");
+                        mostraRegistro_report_ragazzo(true);
                     })
-                    .withFailureHandler(err => showStatus("Errore nell'eliminazione della PP.", false))
+                    .withFailureHandler(err => showStatus_report_ragazzo("Errore nell'eliminazione della PP.", false))
                     .deletePP(id);
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            creaDocBtn.disabled = true; // Disabilita all'inizio
-            mostraBtn.addEventListener('click', () => mostraRegistro());
-            viewBtn.addEventListener('click', () => toggleMode('view'));
-            editBtn.addEventListener('click', () => toggleMode('edit'));
-            creaDocBtn.addEventListener('click', avviaCreazioneDoc); // Listener per il nuovo pulsante
-            popolaDatalist();
+        window.initForm = function initForm() {
+            console.log("Inizializzazione reportRagazzo.html");
+            creaDocBtn_report_ragazzo.disabled = true;
+            mostraBtn_report_ragazzo.addEventListener('click', () => mostraRegistro_report_ragazzo());
+            viewBtn_report_ragazzo.addEventListener('click', () => toggleMode_report_ragazzo('view'));
+            editBtn_report_ragazzo.addEventListener('click', () => toggleMode_report_ragazzo('edit'));
+            creaDocBtn_report_ragazzo.addEventListener('click', avviaCreazioneDoc_report_ragazzo);
+            
+            popolaDatalist_report_ragazzo();
 
-            // Gestione toggle PP
             const togglePPBtn = document.getElementById("togglePPBtn");
             const ppDiv = document.getElementById("PP");
             togglePPBtn.addEventListener("click", () => {
@@ -901,7 +889,6 @@
                 togglePPBtn.classList.toggle("open", !isOpen);
             });
 
-            // Gestione toggle Storico
             const toggleStoricoBtn = document.getElementById("toggleStoricoBtn");
             const storicoDiv = document.getElementById("Storico");
             toggleStoricoBtn.addEventListener("click", () => {
@@ -909,8 +896,8 @@
                 storicoDiv.style.display = isOpen ? "none" : "block";
                 toggleStoricoBtn.classList.toggle("open", !isOpen);
             });
-        });
-
+        }
+      }
     </script>
 </body>
 </html>

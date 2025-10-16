@@ -120,7 +120,7 @@
             <input type="text" name="cognome" id="cognome" placeholder="Digita Cognome" required>
 
             <div class="button-container">
-                <input type="button" id="saveButton" value="Salva" onclick="salvaDati()">
+                <input type="button" id="saveButton" value="Salva" onclick="salvaDati_ragazzo()">
             </div>
             
             <div style="text-align: center;">
@@ -131,12 +131,14 @@
     </div>
 
     <script>
-        const button = document.getElementById('saveButton');
-        const nomeField = document.getElementById('nome');
-        const cognomeField = document.getElementById('cognome');
+      if (!window._addRagazzoInitialized) {
+        window._addRagazzoInitialized = true;
 
-        // Funzione per mostrare messaggi di stato
-        function showStatus(message, isSuccess = true) {
+        const button_ragazzo = document.getElementById('saveButton');
+        const nomeField_ragazzo = document.getElementById('nome');
+        const cognomeField_ragazzo = document.getElementById('cognome');
+
+        function showStatus_ragazzo(message, isSuccess = true) {
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = message;
             statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
@@ -146,68 +148,78 @@
             }, 3000);
         }
 
-        function salvaDati() {
-            button.disabled = true;
+        window.initForm = function initForm() {
+          console.log("Entrato in addRagazzo");
+        }
 
-            // reset stili errore
-            nomeField.classList.remove('error');
-            cognomeField.classList.remove('error');
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            try { window.initForm(); } catch(e){ console.error(e); }
+          });
+        } else {
+          try { window.initForm(); } catch(e){ console.error(e); }
+        }
+
+        function salvaDati_ragazzo() {
+            button_ragazzo.disabled = true;
+
+            nomeField_ragazzo.classList.remove('error');
+            cognomeField_ragazzo.classList.remove('error');
 
             const formElement = document.getElementById('form');
             const data = {
-                nome: nomeField.value.trim(),
-                cognome: cognomeField.value.trim(),
+                nome: nomeField_ragazzo.value.trim(),
+                cognome: cognomeField_ragazzo.value.trim(),
             };
 
-            showStatus("Verifica in corso...", true);
+            showStatus_ragazzo("Verifica in corso...", true);
             
-            // Controllo duplicati lato server
             google.script.run
                 .withSuccessHandler(function(esiste) {
                     if (esiste) {
-                        showStatus("Questo ragazzo esiste già!", false);
-                        nomeField.classList.add('error');
-                        cognomeField.classList.add('error');
-                        button.disabled = false;
+                        showStatus_ragazzo("Questo ragazzo esiste già!", false);
+                        nomeField_ragazzo.classList.add('error');
+                        cognomeField_ragazzo.classList.add('error');
+                        button_ragazzo.disabled = false;
 
                         formElement.reset();
-                        nomeField.classList.remove('error');
-                        cognomeField.classList.remove('error');
+                        nomeField_ragazzo.classList.remove('error');
+                        cognomeField_ragazzo.classList.remove('error');
 
                         return;
                     }
 
-                    // Se non esiste duplicato → salva
-                    showStatus("Salvataggio in corso...", true);
+                    showStatus_ragazzo("Salvataggio in corso...", true);
                     google.script.run
                         .withSuccessHandler(function() {
                             const checkmark = document.getElementById('checkmark');
                             checkmark.style.display = 'inline';
-                            showStatus("Salvataggio completato!", true);
+                            showStatus_ragazzo("Salvataggio completato!", true);
                             
                             formElement.reset();
-                            nomeField.classList.remove('error');
-                            cognomeField.classList.remove('error');
+                            nomeField_ragazzo.classList.remove('error');
+                            cognomeField_ragazzo.classList.remove('error');
 
                             setTimeout(() => {
                                 checkmark.style.display = 'none';
-                                button.disabled = false;
+                                button_ragazzo.disabled = false;
                             }, 2000);
                         })
                         .withFailureHandler(function(err){
                             console.error('Errore addRagazzo:', err);
-                            showStatus('Errore salvataggio ragazzo. Controlla log.', false);
-                            button.disabled = false;
+                            showStatus_ragazzo('Errore salvataggio ragazzo. Controlla log.', false);
+                            button_ragazzo.disabled = false;
                         })
                         .addRagazzo(data);
                 })
                 .withFailureHandler(function(err) {
                     console.error('Errore checkRagazzoExists:', err);
-                    showStatus('Errore verifica duplicati. Controlla log.', false);
-                    button.disabled = false;
+                    showStatus_ragazzo('Errore verifica duplicati. Controlla log.', false);
+                    button_ragazzo.disabled = false;
                 })
                 .checkRagazzoExists(data.nome, data.cognome);
         }
+      }
     </script>
 </body>
 </html>

@@ -143,54 +143,53 @@
     </div>
 
     <script>
-        const avviaBtn = document.getElementById('avviaBtn');
-        const statusLog = document.getElementById('statusLog');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-        // Seleziona la nuova checkbox
-        const soloEGCb = document.getElementById('soloEGCb'); 
+      if (!window._reportRagazzoDocInitialized) {
+        window._reportRagazzoDocInitialized = true;
 
-        function logStatus(message, type = '') {
+        const avviaBtn_report_ragazzo_doc = document.getElementById('avviaBtn');
+        const statusLog_report_ragazzo_doc = document.getElementById('statusLog');
+        const progressContainer_report_ragazzo_doc = document.getElementById('progressContainer');
+        const progressBar_report_ragazzo_doc = document.getElementById('progressBar');
+        const progressText_report_ragazzo_doc = document.getElementById('progressText');
+        const soloEGCb_report_ragazzo_doc = document.getElementById('soloEGCb');
+
+        function logStatus_report_ragazzo_doc(message, type = '') {
             const item = document.createElement('div');
             item.textContent = message;
             item.className = 'log-item ' + (type ? 'log-' + type : '');
-            statusLog.appendChild(item);
-            statusLog.scrollTop = statusLog.scrollHeight; // Auto-scroll
+            statusLog_report_ragazzo_doc.appendChild(item);
+            statusLog_report_ragazzo_doc.scrollTop = statusLog_report_ragazzo_doc.scrollHeight;
         }
 
-        async function startBulkCreation() {
-            avviaBtn.disabled = true;
-            avviaBtn.textContent = 'In Corso...';
-            statusLog.innerHTML = '';
-            progressContainer.style.display = 'none'; // Nasconde la barra all'inizio
+        async function startBulkCreation_report_ragazzo_doc() {
+            avviaBtn_report_ragazzo_doc.disabled = true;
+            avviaBtn_report_ragazzo_doc.textContent = 'In Corso...';
+            statusLog_report_ragazzo_doc.innerHTML = '';
+            progressContainer_report_ragazzo_doc.style.display = 'none';
             
-            // Determina l'argomento per getRagazziList
-            // Se la checkbox è SELEZIONATA (true), passiamo false (per avere solo gli EG presenti)
-            // Se la checkbox è DESELEZIONATA (false), passiamo true (per avere TUTTI gli EG, compresi i non presenti)
-            const includeAll = !soloEGCb.checked;
-            logStatus(`Recupero elenco ragazzi (Includi Tutti: ${includeAll ? 'Sì' : 'No'})...`);
+            const includeAll = !soloEGCb_report_ragazzo_doc.checked;
+            logStatus_report_ragazzo_doc(`Recupero elenco ragazzi (Includi Tutti: ${includeAll ? 'Sì' : 'No'})...`);
 
             try {
                 const ragazzi = await new Promise((resolve, reject) => {
                     google.script.run
                         .withSuccessHandler(resolve)
                         .withFailureHandler(reject)
-                        .getRagazziList(includeAll); // Passa l'argomento basato sulla checkbox
+                        .getRagazziList(includeAll);
                 });
 
                 if (!ragazzi || ragazzi.length === 0) {
-                    logStatus('Nessun ragazzo trovato.', 'error');
-                    avviaBtn.textContent = 'Nessun Ragazzo';
+                    logStatus_report_ragazzo_doc('Nessun ragazzo trovato.', 'error');
+                    avviaBtn_report_ragazzo_doc.textContent = 'Nessun Ragazzo';
                     return;
                 }
                 
                 const totalRagazzi = ragazzi.length;
-                progressContainer.style.display = 'block'; // Mostra la barra
-                progressBar.style.width = '0%';
-                progressText.textContent = `0 / ${totalRagazzi}`;
+                progressContainer_report_ragazzo_doc.style.display = 'block';
+                progressBar_report_ragazzo_doc.style.width = '0%';
+                progressText_report_ragazzo_doc.textContent = `0 / ${totalRagazzi}`;
                 
-                logStatus(`Trovati ${totalRagazzi} ragazzi. Inizio il processo...`);
+                logStatus_report_ragazzo_doc(`Trovati ${totalRagazzi} ragazzi. Inizio il processo...`);
                 
                 let successCount = 0;
                 let errorCount = 0;
@@ -199,7 +198,7 @@
                 for (const ragazzo of ragazzi) {
                     const id = ragazzo[0];
                     const nome = ragazzo[1];
-                    logStatus(`- Creazione per ${nome}...`);
+                    logStatus_report_ragazzo_doc(`- Creazione per ${nome}...`);
                     
                     try {
                         const result = await new Promise((resolve, reject) => {
@@ -210,40 +209,52 @@
                         });
 
                         if (result.success) {
-                            logStatus(`  -> OK: ${nome}`, 'success');
+                            logStatus_report_ragazzo_doc(`  -> OK: ${nome}`, 'success');
                             successCount++;
                         } else {
                             throw new Error(result.message);
                         }
 
                     } catch (err) {
-                        logStatus(`  -> ERRORE: ${nome} - ${err.message}`, 'error');
+                        logStatus_report_ragazzo_doc(`  -> ERRORE: ${nome} - ${err.message}`, 'error');
                         errorCount++;
                     } finally {
                         completedCount++;
                         const percentage = (completedCount / totalRagazzi) * 100;
-                        progressBar.style.width = percentage + '%';
-                        progressText.textContent = `${completedCount} / ${totalRagazzi}`;
+                        progressBar_report_ragazzo_doc.style.width = percentage + '%';
+                        progressText_report_ragazzo_doc.textContent = `${completedCount} / ${totalRagazzi}`;
                     }
                 }
                 
-                logStatus('------------------------------------');
-                logStatus(`PROCESSO COMPLETATO!`, 'success');
-                logStatus(`Report creati/aggiornati: ${successCount}`);
+                logStatus_report_ragazzo_doc('------------------------------------');
+                logStatus_report_ragazzo_doc(`PROCESSO COMPLETATO!`, 'success');
+                logStatus_report_ragazzo_doc(`Report creati/aggiornati: ${successCount}`);
                 if (errorCount > 0) {
-                    logStatus(`Errori riscontrati: ${errorCount}`, 'error');
+                    logStatus_report_ragazzo_doc(`Errori riscontrati: ${errorCount}`, 'error');
                 }
 
             } catch (err) {
-                logStatus('Errore critico nel recuperare la lista dei ragazzi: ' + (err.message || err), 'error');
+                logStatus_report_ragazzo_doc('Errore critico nel recuperare la lista dei ragazzi: ' + (err.message || err), 'error');
                 console.error(err);
             } finally {
-                avviaBtn.disabled = false;
-                avviaBtn.textContent = 'Avvia di Nuovo';
+                avviaBtn_report_ragazzo_doc.disabled = false;
+                avviaBtn_report_ragazzo_doc.textContent = 'Avvia di Nuovo';
             }
         }
 
-        avviaBtn.addEventListener('click', startBulkCreation);
+        window.initForm = function initForm() {
+          console.log("Entrato in reportRagazzoDoc");
+          avviaBtn_report_ragazzo_doc.addEventListener('click', startBulkCreation_report_ragazzo_doc);
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            try { window.initForm(); } catch(e){ console.error(e); }
+          });
+        } else {
+          try { window.initForm(); } catch(e){ console.error(e); }
+        }
+      }
     </script>
 </body>
 </html>

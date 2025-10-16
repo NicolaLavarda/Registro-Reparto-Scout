@@ -122,11 +122,13 @@
     </div>
 
     <script>
-        const nameToId = {};
-        const button = document.getElementById('removeButton');
+      if (!window._removeRagazzoInitialized) {
+        window._removeRagazzoInitialized = true;
 
-        // Funzione per mostrare messaggi di stato
-        function showStatus(message, isSuccess = true) {
+        const nameToId_remove_ragazzo = {};
+        const button_remove_ragazzo = document.getElementById('removeButton');
+
+        function showStatus_remove_ragazzo(message, isSuccess = true) {
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = message;
             statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
@@ -136,62 +138,70 @@
             }, 3000);
         }
 
-        // Popola datalist dei ragazzi
-        window.onload = function() {
-            google.script.run.withSuccessHandler(function(data) {
-                const datalist = document.getElementById('ragazziList');
-                datalist.innerHTML = '';
-                data.forEach(row => {
-                    if (row[1]) {
-                        const fullName = row[1].trim();
-                        const opt = document.createElement('option');
-                        opt.value = fullName;
-                        datalist.appendChild(opt);
-                        nameToId[fullName] = row[0]; // Nome -> ID
-                    }
-                });
-            }).getRagazziList();
+        window.initForm = function initForm() {
+          console.log("Entrato in removeRagazzo");
+          google.script.run.withSuccessHandler(function(data) {
+              const datalist = document.getElementById('ragazziList');
+              datalist.innerHTML = '';
+              data.forEach(row => {
+                  if (row[1]) {
+                      const fullName = row[1].trim();
+                      const opt = document.createElement('option');
+                      opt.value = fullName;
+                      datalist.appendChild(opt);
+                      nameToId_remove_ragazzo[fullName] = row[0];
+                  }
+              });
+          }).getRagazziList();
         };
 
-        // Aggiorna hidden field con l'ID
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            try { window.initForm(); } catch(e){ console.error(e); }
+          });
+        } else {
+          try { window.initForm(); } catch(e){ console.error(e); }
+        }
+
         document.getElementById('ragazzoInput').addEventListener('input', function() {
             const inputValue = this.value.trim();
-            document.getElementById('ragazzoId').value = nameToId[inputValue] || "";
+            document.getElementById('ragazzoId').value = nameToId_remove_ragazzo[inputValue] || "";
         });
 
-        function remove() {
-            button.disabled = true;
+        function remove_ragazzo() {
+            button_remove_ragazzo.disabled = true;
 
             const ragazzoId = document.getElementById('ragazzoId').value;
             if (!ragazzoId) {
-                showStatus("Seleziona un ragazzo valido dalla lista.", false);
-                button.disabled = false;
+                showStatus_remove_ragazzo("Seleziona un ragazzo valido dalla lista.", false);
+                button_remove_ragazzo.disabled = false;
                 return;
             }
 
-            showStatus("Rimozione in corso...", true);
+            showStatus_remove_ragazzo("Rimozione in corso...", true);
             
             google.script.run
                 .withSuccessHandler(() => {
                     const checkmark = document.getElementById('checkmark');
                     checkmark.style.display = 'inline';
-                    showStatus("Ragazzo segnato come uscito!", true);
+                    showStatus_remove_ragazzo("Ragazzo segnato come uscito!", true);
                     
                     setTimeout(() => {
                         checkmark.style.display = 'none';
-                        button.disabled = false;
+                        button_remove_ragazzo.disabled = false;
                         document.getElementById('form').reset();
                     }, 2000);
                 })
                 .withFailureHandler(err => {
                     console.error('Errore removeRagazzo:', err);
-                    showStatus("Errore: " + err.message, false);
-                    button.disabled = false;
+                    showStatus_remove_ragazzo("Errore: " + err.message, false);
+                    button_remove_ragazzo.disabled = false;
                 })
                 .removeRagazzo({ ragazzo: ragazzoId });
         }
 
-        button.addEventListener('click', remove);
+        button_remove_ragazzo.addEventListener('click', remove_ragazzo);
+      }
     </script>
 </body>
 </html>

@@ -123,7 +123,7 @@
             <input type="date" name="data" id="data">
             
             <div class="button-container">
-                <input type="button" id="saveButton" value="Salva" onclick="salvaDati()">
+                <input type="button" id="saveButton" value="Salva" onclick="salvaDati_specialita()">
             </div>
             <div style="text-align: center;">
                 <span id="checkmark" style="display:none;">✔️</span>
@@ -133,11 +133,13 @@
     </div>
 
     <script>
-        const nameToId = {};
-        const button = document.getElementById('saveButton');
+      if (!window._addSpecialitaInitialized) {
+        window._addSpecialitaInitialized = true;
 
-        // Funzione per mostrare messaggi di stato
-        function showStatus(message, isSuccess = true) {
+        const nameToId_specialita = {};
+        const button_specialita = document.getElementById('saveButton');
+
+        function showStatus_specialita(message, isSuccess = true) {
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = message;
             statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
@@ -147,97 +149,102 @@
             }, 3000);
         }
 
-        // Popola la datalist dei ragazzi
-        window.onload = function() {
-            google.script.run.withSuccessHandler(function(data) {
-                const datalist = document.getElementById('ragazziList');
-                datalist.innerHTML = '';
-                data.forEach(function(row) {
-                    let opt = document.createElement('option');
-                    opt.value = row[1];
-                    datalist.appendChild(opt);
-                    nameToId[row[1]] = row[0];
-                });
-            }).getRagazziList();
+        window.initForm = function initForm() {
+          console.log("Entrato in addSpecialita");
+          google.script.run.withSuccessHandler(function(data) {
+              const datalist = document.getElementById('ragazziList');
+              datalist.innerHTML = '';
+              data.forEach(function(row) {
+                  let opt = document.createElement('option');
+                  opt.value = row[1];
+                  datalist.appendChild(opt);
+                  nameToId_specialita[row[1]] = row[0];
+              });
+          }).getRagazziList();
 
-            // Popola la datalist con le specialità
-            google.script.run.withSuccessHandler(function(data) {
-                const datalist = document.getElementById('specialitaList');
-                datalist.innerHTML = '';
-                data.forEach(function(s) {
-                    let opt = document.createElement('option');
-                    opt.value = s;
-                    datalist.appendChild(opt);
-                });
-            }).getSpecialitaList();
+          google.script.run.withSuccessHandler(function(data) {
+              const datalist = document.getElementById('specialitaList');
+              datalist.innerHTML = '';
+              data.forEach(function(s) {
+                  let opt = document.createElement('option');
+                  opt.value = s;
+                  datalist.appendChild(opt);
+              });
+          }).getSpecialitaList();
         };
 
-        // Quando cambia il campo Ragazzo, aggiorna il campo nascosto
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            try { window.initForm(); } catch(e){ console.error(e); }
+          });
+        } else {
+          try { window.initForm(); } catch(e){ console.error(e); }
+        }
+
         document.getElementById('ragazzoInput').addEventListener('input', function() {
             const inputValue = this.value.trim();
-            document.getElementById('ragazzoId').value = nameToId[inputValue] || "";
+            document.getElementById('ragazzoId').value = nameToId_specialita[inputValue] || "";
         });
 
-        function salvaDati() {
-            button.disabled = true;
+        function salvaDati_specialita() {
+            button_specialita.disabled = true;
 
             const ragazzoId = document.getElementById('ragazzoId').value;
             const specialita = document.getElementById('specialitaInput').value.trim();
             const dataValue = document.getElementById('data').value;
 
             if (!ragazzoId) {
-                showStatus("Seleziona un ragazzo valido dalla lista.", false);
-                button.disabled = false;
+                showStatus_specialita("Seleziona un ragazzo valido dalla lista.", false);
+                button_specialita.disabled = false;
                 return;
             }
             if (!specialita) {
-                showStatus("Seleziona o scrivi una specialità valida.", false);
-                button.disabled = false;
+                showStatus_specialita("Seleziona o scrivi una specialità valida.", false);
+                button_specialita.disabled = false;
                 return;
             }
             
-            showStatus("Verifica in corso...", true);
+            showStatus_specialita("Verifica in corso...", true);
 
-            // Controlla lato server se la specialità è già registrata per questo ragazzo
             google.script.run.withSuccessHandler(function(alreadyExists) {
                 if (alreadyExists) {
-                    showStatus("A questo ragazzo è già stata registrata la specialità selezionata!", false);
-                    button.disabled = false;
+                    showStatus_specialita("A questo ragazzo è già stata registrata la specialità selezionata!", false);
+                    button_specialita.disabled = false;
                     return;
                 }
 
-                // Se non esiste, salva normalmente
                 const data = {
                     ragazzo: ragazzoId,
                     specialita: specialita,
                     data: dataValue
                 };
                 
-                showStatus("Salvataggio in corso...", true);
+                showStatus_specialita("Salvataggio in corso...", true);
                 
                 google.script.run.withSuccessHandler(function(){
                     const checkmark = document.getElementById('checkmark');
                     checkmark.style.display = 'inline';
-                    showStatus("Salvataggio completato!", true);
+                    showStatus_specialita("Salvataggio completato!", true);
                     
                     setTimeout(() => {
                         checkmark.style.display = 'none';
-                        button.disabled = false;
+                        button_specialita.disabled = false;
                         document.getElementById('form').reset();
                         document.getElementById('ragazzoId').value = "";
                     }, 2000);
                 }).withFailureHandler(function(err){
                     console.error('Errore addSpecialita:', err);
-                    showStatus("Errore salvataggio specialità.", false);
-                    button.disabled = false;
+                    showStatus_specialita("Errore salvataggio specialità.", false);
+                    button_specialita.disabled = false;
                 }).addSpecialita(data);
 
             }).withFailureHandler(function(err){
                 console.error('Errore checkSpecialitaExists:', err);
-                showStatus("Errore di verifica. Riprova.", false);
-                button.disabled = false;
+                showStatus_specialita("Errore di verifica. Riprova.", false);
+                button_specialita.disabled = false;
             }).checkSpecialitaExists(ragazzoId, specialita);
         }
+      }
     </script>
 </body>
 </html>

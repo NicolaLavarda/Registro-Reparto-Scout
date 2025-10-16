@@ -44,20 +44,17 @@
             color: #666;
             margin-top: 15px;
         }
-        /* Rimuove lo stile di default solo per la lista principale, non per quelle nel report */
         body > .container > .card > ul {
             list-style-type: none;
             padding-left: 0;
         }
 
-        /* Stile per gli elenchi puntati degli interventi all'interno delle card del report */
         #contenuto .card ul {
-            list-style-type: disc; /* Aggiunge i pallini */
-            padding-left: 25px;    /* Aggiunge indentazione */
+            list-style-type: disc;
+            padding-left: 25px;
             margin-top: 5px;
         }
 
-        /* Aggiunge spazio tra la casella di ricerca e i pulsanti */
         #selezione input[list] {
             margin-bottom: 15px;
         }
@@ -128,7 +125,6 @@
             display: none;
         }
 
-        /* --- STILI COPIATI DA reportRagazzo.html --- */
         #modeSwitcher {
             display: none; /* Inizialmente nascosto */
             justify-content: center;
@@ -141,8 +137,8 @@
             padding: 8px 16px;
             cursor: pointer;
             font-weight: 700;
-            border-radius: 0; /* Rimuoviamo il border radius di default */
-            margin: 0; /* Rimuoviamo il margine di default */
+            border-radius: 0;
+            margin: 0;
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
         .mode-button:first-child {
@@ -150,7 +146,7 @@
         }
         .mode-button:last-child {
             border-radius: 0 8px 8px 0;
-            margin-left: -1px; /* Sovrappone i bordi */
+            margin-left: -1px;
         }
         .mode-button.active {
             background-color: #4CAF50;
@@ -158,7 +154,7 @@
             border-color: #4CAF50;
         }
         .icon.edit, .icon.delete {
-            display: none; /* Nascoste di default */
+            display: none;
             cursor: pointer;
             color: #999;
             font-size: 1.2em;
@@ -175,8 +171,8 @@
         .item-row {
             display: flex;
             justify-content: space-between;
-            align-items: center; /* Centra verticalmente */
-            gap: 10px; /* Aggiunge spazio */
+            align-items: center;
+            gap: 10px;
         }
         .item-text {
             flex-grow: 1;
@@ -187,7 +183,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Nuovo selettore di modalità -->
         <div id="modeSwitcher">
             <button id="viewBtn" class="mode-button active">VISUALIZZA</button>
             <button id="editBtn" class="mode-button">MODIFICA</button>
@@ -203,21 +198,24 @@
             <p>Seleziona Consiglio:</p>
             <input list="consigliList" id="consiglioInput" placeholder="Digita nome/tema del consiglio">
             <datalist id="consigliList"></datalist>
-            <button onclick="mostraRegistro()">Mostra</button>
-            <button onclick="esportaDocumento()">Esporta Documento</button>
+            <button onclick="mostraRegistro_report_consiglio()">Mostra</button>
+            <button onclick="esportaDocumento_report_consiglio()">Esporta Documento</button>
             <span id="statusMessage" class="status-message"></span>
         </div>
     </div>
 
     <script>
-        let temaToId = {}; // Nuova mappa per Tema -> ID
-        const modeSwitcher = document.getElementById('modeSwitcher');
-        const viewBtn = document.getElementById('viewBtn');
-        const editBtn = document.getElementById('editBtn');
-        let currentMode = 'view';
-        let currentConsiglioId = null;
+      if (!window._reportConsiglioInitialized) {
+        window._reportConsiglioInitialized = true;
 
-        function showStatus(message, isSuccess = true) {
+        let temaToId_report_consiglio = {};
+        const modeSwitcher_report_consiglio = document.getElementById('modeSwitcher');
+        const viewBtn_report_consiglio = document.getElementById('viewBtn');
+        const editBtn_report_consiglio = document.getElementById('editBtn');
+        let currentMode_report_consiglio = 'view';
+        let currentConsiglioId_report_consiglio = null;
+
+        function showStatus_report_consiglio(message, isSuccess = true) {
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = message;
             statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
@@ -227,62 +225,39 @@
             }, 3000);
         }
 
-        // Funzione per mostrare/nascondere le icone
-        function toggleIconsVisibility() {
+        function toggleIconsVisibility_report_consiglio() {
             const icons = document.querySelectorAll('.icon.edit, .icon.delete');
             icons.forEach(icon => {
-                icon.style.display = currentMode === 'edit' ? 'inline-block' : 'none';
+                icon.style.display = currentMode_report_consiglio === 'edit' ? 'inline-block' : 'none';
             });
         }
         
-        // Funzione per cambiare modalità
-        function toggleMode(mode) {
-            currentMode = mode;
-            viewBtn.classList.remove('active');
-            editBtn.classList.remove('active');
-            document.getElementById(mode + 'Btn').classList.add('active');
-            if (currentConsiglioId) {
-                toggleIconsVisibility();
+        function toggleMode_report_consiglio(mode) {
+            currentMode_report_consiglio = mode;
+            viewBtn_report_consiglio.classList.toggle('active', mode === 'view');
+            editBtn_report_consiglio.classList.toggle('active', mode === 'edit');
+            if (currentConsiglioId_report_consiglio) {
+                toggleIconsVisibility_report_consiglio();
             }
         }
-
-        // Popolamento iniziale della lista consigli
-        google.script.run.withSuccessHandler(function(data) {
-            const datalist = document.getElementById('consigliList');
-            datalist.innerHTML = '';
-            temaToId = {}; // Pulisce la mappa prima di riempirla
-            data.forEach(row => {
-                const id = row[0];
-                const tema = row[1] || "";
-                if (tema) {
-                    const opt = document.createElement('option');
-                    opt.value = tema; // Il valore ora è solo il tema
-                    datalist.appendChild(opt);
-                    temaToId[tema] = id; // Popola la nuova mappa
-                }
-            });
-        }).withFailureHandler(function(err) {
-            console.error('Errore getConsigliList:', err);
-            showStatus('Errore nel caricamento della lista dei consigli.', false);
-        }).getConsigliList();
-
-        function mostraRegistro(forceReload = false) {
+        
+        window.mostraRegistro_report_consiglio = function (forceReload = false) {
             let id;
             if (forceReload) {
-              id = currentConsiglioId;
+              id = currentConsiglioId_report_consiglio;
             } else {
               const temaSelezionato = document.getElementById('consiglioInput').value.trim();
               if (!temaSelezionato) {
-                  showStatus("Seleziona un consiglio dalla lista!", false);
+                  showStatus_report_consiglio("Seleziona un consiglio dalla lista!", false);
                   return;
               }
               
-              id = temaToId[temaSelezionato]; // Ottiene l'ID dalla mappa usando il tema
+              id = temaToId_report_consiglio[temaSelezionato];
               if (!id) {
-                  showStatus("Consiglio non trovato! Assicurati di selezionarne uno valido.", false);
+                  showStatus_report_consiglio("Consiglio non trovato! Assicurati di selezionarne uno valido.", false);
                   return;
               }
-              currentConsiglioId = id; // Salva l'id corrente
+              currentConsiglioId_report_consiglio = id;
             }
 
             if (!id) return;
@@ -299,8 +274,8 @@
                       mostraBtn.disabled = false;
                       mostraBtn.textContent = 'Mostra';
                     }
-                    generaReport(data);
-                    showStatus('Report caricato con successo!', true);
+                    generaReport_report_consiglio(data);
+                    showStatus_report_consiglio('Report caricato con successo!', true);
                 })
                 .withFailureHandler(function(err) {
                     console.error('Errore getReportConsiglioData:', err);
@@ -308,19 +283,19 @@
                       mostraBtn.disabled = false;
                       mostraBtn.textContent = 'Mostra';
                     }
-                    showStatus('Errore nel recupero del report del consiglio.', false);
+                    showStatus_report_consiglio('Errore nel recupero del report del consiglio.', false);
                 })
                 .getReportConsiglioData(id);
         }
 
-        function generaReport(data) {
+        function generaReport_report_consiglio(data) {
             if (!data) {
-                showStatus("Errore: dati del consiglio non ricevuti!", false);
+                showStatus_report_consiglio("Errore: dati del consiglio non ricevuti!", false);
                 return;
             }
             
             document.getElementById('reportDisplayArea').style.display = 'block';
-            modeSwitcher.style.display = 'flex'; // Mostra il selettore
+            modeSwitcher_report_consiglio.style.display = 'flex';
             
             const contenuto = document.getElementById('contenuto');
             contenuto.innerHTML = '';
@@ -342,7 +317,7 @@
                 h2.textContent = sq;
                 card.appendChild(h2);
 
-                const ragazzi = squadriglie[sq]; // ora è un array ordinato
+                const ragazzi = squadriglie[sq];
                 ragazzi.forEach(ragazzo => {
                     const h3 = document.createElement('h3');
                     h3.textContent = ragazzo.nomeCompleto;
@@ -357,8 +332,8 @@
                         ul.appendChild(li);
                     } else {
                         interventi.forEach(intervento => {
-                            const editIcon = `<span class="icon edit" onclick="editIntervento('${intervento.id}')" title="Modifica intervento">&#9998;</span>`;
-                            const deleteIcon = `<span class="icon delete" onclick="deleteIntervento('${intervento.id}')" title="Elimina intervento">&#128465;</span>`;
+                            const editIcon = `<span class="icon edit" onclick="editIntervento_report_consiglio('${intervento.id}')" title="Modifica intervento">&#9998;</span>`;
+                            const deleteIcon = `<span class="icon delete" onclick="deleteIntervento_report_consiglio('${intervento.id}')" title="Elimina intervento">&#128465;</span>`;
 
                             const li = document.createElement('li');
                             li.innerHTML = `
@@ -376,55 +351,53 @@
                 });
                 contenuto.appendChild(card);
             }
-            // Applica la visibilità delle icone dopo aver generato il report
-            toggleIconsVisibility();
+            toggleIconsVisibility_report_consiglio();
         }
 
-        function editIntervento(id) {
+        window.editIntervento_report_consiglio = function (id) {
             google.script.run.withSuccessHandler(data => {
                 const nuovoTesto = prompt('Modifica l\'intervento:', data.intervento);
                 if (nuovoTesto !== null && nuovoTesto.trim() !== "") {
                     google.script.run
                         .withSuccessHandler(() => {
-                            showStatus("Intervento aggiornato con successo!");
-                            mostraRegistro(true); // ricarica il report
+                            showStatus_report_consiglio("Intervento aggiornato con successo!");
+                            mostraRegistro_report_consiglio(true);
                         })
                         .withFailureHandler(err => {
                             console.error("Errore aggiornamento intervento: ", err);
-                            showStatus("Errore nell'aggiornamento dell'intervento.", false);
+                            showStatus_report_consiglio("Errore nell'aggiornamento dell'intervento.", false);
                         })
                         .editIntervento({ id: id, intervento: nuovoTesto });
                 }
             }).withFailureHandler(err => {
                  console.error("Errore recupero intervento: ", err);
-                 showStatus("Errore nel recupero dei dati dell'intervento.", false);
+                 showStatus_report_consiglio("Errore nel recupero dei dati dell'intervento.", false);
             }).getInterventoById(id);
         }
 
-        function deleteIntervento(id) {
+        window.deleteIntervento_report_consiglio = function (id) {
             if (confirm("Sei sicuro di voler eliminare questo intervento?")) {
                 google.script.run
                     .withSuccessHandler(() => {
-                        showStatus("Intervento eliminato con successo!");
-                        mostraRegistro(true); // ricarica il report
+                        showStatus_report_consiglio("Intervento eliminato con successo!");
+                        mostraRegistro_report_consiglio(true);
                     })
                     .withFailureHandler(err => {
                         console.error("Errore eliminazione intervento: ", err);
-                        showStatus("Errore durante l'eliminazione.", false)
+                        showStatus_report_consiglio("Errore durante l'eliminazione.", false)
                     })
                     .deleteIntervento(id);
             }
         }
 
-        function esportaDocumento() {
+        window.esportaDocumento_report_consiglio = function () {
             const titolo = document.getElementById('titoloConsiglio').textContent;
             if (!titolo) {
-                showStatus("Carica prima un report da esportare.", false);
+                showStatus_report_consiglio("Carica prima un report da esportare.", false);
                 return;
             }
             const data = document.getElementById('dataConsiglio').textContent;
             
-            // Creiamo una copia del contenuto e rimuoviamo le icone
             const contenutoNode = document.getElementById('contenuto').cloneNode(true);
             contenutoNode.querySelectorAll('.icon.edit, .icon.delete').forEach(icon => icon.remove());
             const contenutoHtml = contenutoNode.innerHTML;
@@ -437,23 +410,42 @@
                 .withSuccessHandler(() => {
                     esportaBtn.disabled = false;
                     esportaBtn.textContent = 'Esporta Documento';
-                    showStatus("Documento creato con successo!", true);
+                    showStatus_report_consiglio("Documento creato con successo!", true);
                 })
                 .withFailureHandler(function(err) {
                     esportaBtn.disabled = false;
                     esportaBtn.textContent = 'Esporta Documento';
                     console.error('Errore creaDocumentoGoogle:', err);
-                    showStatus('Errore durante l\'esportazione del documento.', false);
+                    showStatus_report_consiglio('Errore durante l\'esportazione del documento.', false);
                 })
                 .creaDocumentoGoogle(titolo, data, contenutoHtml);
         }
 
-        // Aggiunta listeners per i nuovi pulsanti
-        document.addEventListener('DOMContentLoaded', function() {
-            viewBtn.addEventListener('click', () => toggleMode('view'));
-            editBtn.addEventListener('click', () => toggleMode('edit'));
-        });
+        window.initForm = function initForm() {
+            console.log("Inizializzazione reportConsiglio.html");
+            google.script.run.withSuccessHandler(function(data) {
+                const datalist = document.getElementById('consigliList');
+                datalist.innerHTML = '';
+                temaToId_report_consiglio = {};
+                data.forEach(row => {
+                    const id = row[0];
+                    const tema = row[1] || "";
+                    if (tema) {
+                        const opt = document.createElement('option');
+                        opt.value = tema;
+                        datalist.appendChild(opt);
+                        temaToId_report_consiglio[tema] = id;
+                    }
+                });
+            }).withFailureHandler(function(err) {
+                console.error('Errore getConsigliList:', err);
+                showStatus_report_consiglio('Errore nel caricamento della lista dei consigli.', false);
+            }).getConsigliList();
 
+            viewBtn_report_consiglio.addEventListener('click', () => toggleMode_report_consiglio('view'));
+            editBtn_report_consiglio.addEventListener('click', () => toggleMode_report_consiglio('edit'));
+        }
+      }
     </script>
 </body>
 </html>

@@ -133,9 +133,9 @@
             <input type="date" id="data">
 
             <div class="button-container">
-                <input type="button" id="saveButton" value="Salva" onclick="salvaDati(false, false)">
-                <input type="button" id="saveNewPpButton" value="Salva + nuova PP a questo EG" onclick="salvaDati(true, false)">
-                <input type="button" id="saveNewPpDateButton" value="Salva + nuova PP a questo EG in questa data" onclick="salvaDati(true, true)">
+                <input type="button" id="saveButton" value="Salva" onclick="salvaDati_pp(false, false)">
+                <input type="button" id="saveNewPpButton" value="Salva + nuova PP a questo EG" onclick="salvaDati_pp(true, false)">
+                <input type="button" id="saveNewPpDateButton" value="Salva + nuova PP a questo EG in questa data" onclick="salvaDati_pp(true, true)">
             </div>
             <div style="text-align: center;">
                 <span id="checkmark" style="display:none;">✔️</span>
@@ -145,10 +145,12 @@
     </div>
 
     <script>
-        const nameToId = {};
+      if (!window._addPpInitialized) {
+        window._addPpInitialized = true;
 
-        // Funzione per mostrare messaggi di stato
-        function showStatus(message, isSuccess = true) {
+        const nameToId_pp = {};
+
+        function showStatus_pp(message, isSuccess = true) {
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = message;
             statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
@@ -158,34 +160,37 @@
             }, 3000);
         }
 
-        // Popola datalist dei ragazzi
-        window.onload = function() {
-            google.script.run.withSuccessHandler(function(data) {
-                const datalist = document.getElementById('ragazziList');
-                datalist.innerHTML = '';
-                data.forEach(row => {
-                    if (row[1]) {
-                        const fullName = row[1].trim();
-                        const opt = document.createElement('option');
-                        opt.value = fullName;
-                        datalist.appendChild(opt);
-                        nameToId[fullName] = row[0]; // mappa Nome -> ID
-                    }
-                });
-            }).getRagazziList();
+        window.initForm = function initForm() {
+          console.log("Entrato in addPP");
+          google.script.run.withSuccessHandler(function(data) {
+              const datalist = document.getElementById('ragazziList');
+              datalist.innerHTML = '';
+              data.forEach(row => {
+                  if (row[1]) {
+                      const fullName = row[1].trim();
+                      const opt = document.createElement('option');
+                      opt.value = fullName;
+                      datalist.appendChild(opt);
+                      nameToId_pp[fullName] = row[0];
+                  }
+              });
+          }).getRagazziList();
         };
 
-        // Aggiorna campo nascosto ragazzo
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            try { window.initForm(); } catch(e){ console.error(e); }
+          });
+        } else {
+          try { window.initForm(); } catch(e){ console.error(e); }
+        }
+
         document.getElementById('ragazzoInput').addEventListener('input', function() {
             const inputValue = this.value.trim();
-            document.getElementById('ragazzoId').value = nameToId[inputValue] || "";
+            document.getElementById('ragazzoId').value = nameToId_pp[inputValue] || "";
         });
 
-        /**
-         * @param {boolean} keepRagazzo -> mantiene il ragazzo selezionato
-         * @param {boolean} keepData -> mantiene la data selezionata
-         */
-        function salvaDati(keepRagazzo, keepData) {
+        function salvaDati_pp(keepRagazzo, keepData) {
             const ragazzoInput = document.getElementById('ragazzoInput');
             const ragazzoId = document.getElementById('ragazzoId').value;
             const PPText = document.getElementById('PP').value.trim();
@@ -193,11 +198,11 @@
             const buttons = document.querySelectorAll('input[type="button"]');
 
             if (!ragazzoId) {
-                showStatus("Seleziona un ragazzo valido dalla lista.", false);
+                showStatus_pp("Seleziona un ragazzo valido dalla lista.", false);
                 return;
             }
             if (!PPText) {
-                showStatus("Inserisci il testo della PP.", false);
+                showStatus_pp("Inserisci il testo della PP.", false);
                 return;
             }
 
@@ -208,22 +213,20 @@
             };
 
             buttons.forEach(b => b.disabled = true);
-            showStatus("Salvataggio in corso...", true);
+            showStatus_pp("Salvataggio in corso...", true);
 
             google.script.run
                 .withSuccessHandler(function() {
                     const checkmark = document.getElementById('checkmark');
                     checkmark.style.display = 'inline';
-                    showStatus("Salvataggio completato!", true);
+                    showStatus_pp("Salvataggio completato!", true);
 
                     setTimeout(() => {
                         checkmark.style.display = 'none';
                         buttons.forEach(b => b.disabled = false);
 
-                        // Svuota solo il testo del campo PP
                         document.getElementById('PP').value = "";
 
-                        // Gestione reset form
                         if (!keepRagazzo) {
                             ragazzoInput.value = "";
                             document.getElementById('ragazzoId').value = "";
@@ -235,11 +238,12 @@
                 })
                 .withFailureHandler(function(err) {
                     console.error('Errore addPP:', err);
-                    showStatus("Errore salvataggio PP.", false);
+                    showStatus_pp("Errore salvataggio PP.", false);
                     buttons.forEach(b => b.disabled = false);
                 })
                 .addPP(data);
         }
+      }
     </script>
 </body>
 </html>

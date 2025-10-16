@@ -114,7 +114,7 @@
             <input type="date" name="data" id="data">
             
             <div class="button-container">
-                <input type="button" id="saveButton" value="Salva" onclick="salvaDati()">
+                <input type="button" id="saveButton" value="Salva" onclick="salvaDati_consiglio()">
             </div>
             <div style="text-align: center;">
                 <span id="checkmark" style="display:none;">✔️</span>
@@ -124,9 +124,12 @@
     </div>
 
     <script>
-        const button = document.getElementById('saveButton');
+      if (!window._addConsiglioInitialized) {
+        window._addConsiglioInitialized = true;
 
-        function showStatus(message, isSuccess = true) {
+        const button_consiglio = document.getElementById('saveButton');
+
+        function showStatus_consiglio(message, isSuccess = true) {
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = message;
             statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
@@ -136,39 +139,52 @@
             }, 3000);
         }
 
-        function salvaDati() {
-            button.disabled = true;
+        window.initForm = function initForm() {
+          console.log("Entrato in addConsiglio");
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            try { window.initForm(); } catch(e){ console.error(e); }
+          });
+        } else {
+          try { window.initForm(); } catch(e){ console.error(e); }
+        }
+
+        function salvaDati_consiglio() {
+            button_consiglio.disabled = true;
 
             const tema = document.getElementById('tema').value.trim();
 
             if (!tema) {
-                showStatus("Inserisci un tema valido.", false);
-                button.disabled = false;
+                showStatus_consiglio("Inserisci un tema valido.", false);
+                button_consiglio.disabled = false;
                 return;
             }
 
             const form = Object.fromEntries(new FormData(document.getElementById('form')).entries());
-            showStatus("Salvataggio in corso...", true);
+            showStatus_consiglio("Salvataggio in corso...", true);
 
             google.script.run
                 .withSuccessHandler(function() {
                     const checkmark = document.getElementById('checkmark');
                     checkmark.style.display = 'inline';
-                    showStatus("Salvataggio completato!", true);
+                    showStatus_consiglio("Salvataggio completato!", true);
 
                     setTimeout(() => {
                         checkmark.style.display = 'none';
-                        button.disabled = false;
+                        button_consiglio.disabled = false;
                         document.getElementById('form').reset();
                     }, 2000);
                 })
                 .withFailureHandler(function(err) {
                     console.error('Errore addConsiglio:', err);
-                    showStatus("Errore salvataggio consiglio. Controlla log.", false);
-                    button.disabled = false;
+                    showStatus_consiglio("Errore salvataggio consiglio. Controlla log.", false);
+                    button_consiglio.disabled = false;
                 })
                 .addConsiglio(form);
         }
+      }
     </script>
 </body>
 </html>

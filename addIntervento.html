@@ -143,12 +143,14 @@
     </div>
 
     <script>
-        const consiglioToId = {};
-        const nameToId = {};
-        const buttons = document.querySelectorAll('input[type="button"]'); // Modificato da singola variabile a selezione multipla
+      if (!window._addInterventoInitialized) {
+        window._addInterventoInitialized = true;
 
-        // Funzione per mostrare messaggi di stato
-        function showStatus(message, isSuccess = true) {
+        const consiglioToId_intervento = {};
+        const nameToId_intervento = {};
+        const buttons_intervento = document.querySelectorAll('input[type="button"]');
+
+        function showStatus_intervento(message, isSuccess = true) {
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = message;
             statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
@@ -158,8 +160,8 @@
             }, 3000);
         }
 
-        window.onload = function() {
-            // Popola datalist dei consigli
+        window.initForm = function initForm() {
+            console.log("Entrato in addIntervento");
             google.script.run.withSuccessHandler(function(data) {
                 const datalist = document.getElementById('consigliList');
                 datalist.innerHTML = '';
@@ -168,12 +170,11 @@
                         const opt = document.createElement('option');
                         opt.value = row[1].trim();
                         datalist.appendChild(opt);
-                        consiglioToId[row[1].trim()] = row[0]; // mappa Tema -> ID
+                        consiglioToId_intervento[row[1].trim()] = row[0];
                     }
                 });
             }).getConsigliList();
 
-            // Popola datalist dei ragazzi
             google.script.run.withSuccessHandler(function(data) {
                 const datalist = document.getElementById('ragazziList');
                 datalist.innerHTML = '';
@@ -183,32 +184,37 @@
                         const opt = document.createElement('option');
                         opt.value = fullName;
                         datalist.appendChild(opt);
-                        nameToId[fullName] = row[0]; // mappa Nome -> ID
+                        nameToId_intervento[fullName] = row[0];
                     }
                 });
             }).getRagazziList();
         };
 
-        // Aggiorna campo nascosto consiglio
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            try { window.initForm(); } catch(e){ console.error(e); }
+          });
+        } else {
+          try { window.initForm(); } catch(e){ console.error(e); }
+        }
+
         document.getElementById('consiglioInput').addEventListener('input', function() {
             const inputValue = this.value.trim();
-            document.getElementById('consiglioId').value = consiglioToId[inputValue] || "";
+            document.getElementById('consiglioId').value = consiglioToId_intervento[inputValue] || "";
         });
 
-        // Aggiorna campo nascosto ragazzo
         document.getElementById('ragazzoInput').addEventListener('input', function() {
             const inputValue = this.value.trim();
-            document.getElementById('ragazzoId').value = nameToId[inputValue] || "";
+            document.getElementById('ragazzoId').value = nameToId_intervento[inputValue] || "";
         });
 
-        // Aggiunge i listener ai pulsanti
-        document.getElementById('btnNormale').addEventListener('click', () => salvaDati('normale'));
-        document.getElementById('btnNuovoIntervento').addEventListener('click', () => salvaDati('nuovoIntervento'));
+        document.getElementById('btnNormale').addEventListener('click', () => salvaDati_intervento('normale'));
+        document.getElementById('btnNuovoIntervento').addEventListener('click', () => salvaDati_intervento('nuovoIntervento'));
 
 
-        function salvaDati(tipo = 'normale') { // Accetta il tipo di salvataggio come parametro
+        function salvaDati_intervento(tipo = 'normale') {
             const formElement = document.getElementById('form');
-            buttons.forEach(b => b.disabled = true);
+            buttons_intervento.forEach(b => b.disabled = true);
 
             const consiglioId = document.getElementById('consiglioId').value;
             const ragazzoId = document.getElementById('ragazzoId').value;
@@ -216,18 +222,18 @@
             const dataValue = document.getElementById('data').value;
 
             if (!consiglioId) {
-                showStatus("Seleziona un consiglio valido dalla lista.", false);
-                buttons.forEach(b => b.disabled = false);
+                showStatus_intervento("Seleziona un consiglio valido dalla lista.", false);
+                buttons_intervento.forEach(b => b.disabled = false);
                 return;
             }
             if (!ragazzoId) {
-                showStatus("Seleziona un ragazzo valido dalla lista.", false);
-                buttons.forEach(b => b.disabled = false);
+                showStatus_intervento("Seleziona un ragazzo valido dalla lista.", false);
+                buttons_intervento.forEach(b => b.disabled = false);
                 return;
             }
             if (!interventoText) {
-                showStatus("Inserisci il testo dell'intervento.", false);
-                buttons.forEach(b => b.disabled = false);
+                showStatus_intervento("Inserisci il testo dell'intervento.", false);
+                buttons_intervento.forEach(b => b.disabled = false);
                 return;
             }
 
@@ -238,17 +244,17 @@
                 data: dataValue
             };
             
-            showStatus("Salvataggio in corso...", true);
+            showStatus_intervento("Salvataggio in corso...", true);
 
             google.script.run
                 .withSuccessHandler(function() {
                     const checkmark = document.getElementById('checkmark');
                     checkmark.style.display = 'inline';
-                    showStatus("Salvataggio completato!", true);
+                    showStatus_intervento("Salvataggio completato!", true);
                     
                     setTimeout(() => {
                         checkmark.style.display = 'none';
-                        buttons.forEach(b => b.disabled = false); // Ria abilita tutti i pulsanti
+                        buttons_intervento.forEach(b => b.disabled = false);
 
                         switch (tipo) {
                             case 'normale':
@@ -257,7 +263,6 @@
                                 document.getElementById('ragazzoId').value = "";
                                 break;
                             case 'nuovoIntervento':
-                                // Resetta solo i campi specifici, mantenendo il Consiglio (id e testo)
                                 document.getElementById('ragazzoInput').value = "";
                                 document.getElementById('ragazzoId').value = "";
                                 document.getElementById('intervento').value = "";
@@ -268,11 +273,12 @@
                 })
                 .withFailureHandler(function(err) {
                     console.error('Errore addIntervento:', err);
-                    showStatus("Errore salvataggio intervento. Controlla log.", false);
-                    buttons.forEach(b => b.disabled = false);
+                    showStatus_intervento("Errore salvataggio intervento. Controlla log.", false);
+                    buttons_intervento.forEach(b => b.disabled = false);
                 })
                 .addIntervento(data);
         }
+      }
     </script>
 </body>
 </html>
