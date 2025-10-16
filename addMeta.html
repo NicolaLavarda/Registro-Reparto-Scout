@@ -138,14 +138,14 @@
 
     <script>
 
-      if (!window._reportRagazzoInitialized) {
-        window._reportRagazzoInitialized = true;
+      if (!window._addMetaInitialized) {
+        window._addMetaInitialized = true;
 
-        const nameToId = {};
-        const buttons = document.querySelectorAll('input[type="button"]');
+        const nameToId_meta = {};
+        const buttons_meta = document.querySelectorAll('input[type="button"]');
 
         // Funzione per mostrare messaggi di stato
-        function showStatus(message, isSuccess = true) {
+        function showStatus_meta(message, isSuccess = true) {
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = message;
             statusMessage.style.color = isSuccess ? '#4CAF50' : '#f44336';
@@ -157,6 +157,7 @@
 
         // Popola datalist dei ragazzi
         window.initForm = function initForm() {
+          console.log("Entrato in addMeta")
           google.script.run.withSuccessHandler(function(data) {
             const datalist = document.getElementById('ragazziList');
             datalist.innerHTML = '';
@@ -166,7 +167,7 @@
                 const opt = document.createElement('option');
                 opt.value = fullName;
                 datalist.appendChild(opt);
-                nameToId[fullName] = row[0];
+                nameToId_meta[fullName] = row[0];
               }
             });
           }).getRagazziList();
@@ -184,7 +185,7 @@
         // Aggiorna campo nascosto ragazzo
         document.getElementById('ragazzoInput').addEventListener('input', function() {
             const inputValue = this.value.trim();
-            document.getElementById('ragazzoId').value = nameToId[inputValue] || "";
+            document.getElementById('ragazzoId').value = nameToId_meta[inputValue] || "";
         });
 
         /**
@@ -197,11 +198,11 @@
             const dataValue = document.getElementById('data').value;
 
             if (!ragazzoId) {
-                showStatus("Seleziona un ragazzo valido dalla lista.", false);
+                showStatus_meta("Seleziona un ragazzo valido dalla lista.", false);
                 return;
             }
             if (!metaText) {
-                showStatus("Inserisci il testo della meta.", false);
+                showStatus_meta("Inserisci il testo della meta.", false);
                 return;
             }
 
@@ -211,18 +212,18 @@
                 data: dataValue
             };
 
-            buttons.forEach(b => b.disabled = true);
-            showStatus("Salvataggio in corso...", true);
+            buttons_meta.forEach(b => b.disabled = true);
+            showStatus_meta("Salvataggio in corso...", true);
 
             google.script.run
                 .withSuccessHandler(function() {
                     const checkmark = document.getElementById('checkmark');
                     checkmark.style.display = 'inline';
-                    showStatus("Salvataggio completato!", true);
+                    showStatus_meta("Salvataggio completato!", true);
 
                     setTimeout(() => {
                         checkmark.style.display = 'none';
-                        buttons.forEach(b => b.disabled = false);
+                        buttons_meta.forEach(b => b.disabled = false);
 
                         document.getElementById('meta').value = "";
                         document.getElementById('data').value = "";
@@ -235,8 +236,8 @@
                 })
                 .withFailureHandler(function(err) {
                     console.error('Errore addMeta:', err);
-                    showStatus("Errore salvataggio meta.", false);
-                    buttons.forEach(b => b.disabled = false);
+                    showStatus_meta("Errore salvataggio meta.", false);
+                    buttons_meta.forEach(b => b.disabled = false);
                 })
                 .addMeta(data);
         }

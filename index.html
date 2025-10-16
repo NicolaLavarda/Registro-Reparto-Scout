@@ -1,21 +1,69 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base target="_top">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-      body { padding: 20px; background: #fafafa; font-family: 'Inter', Arial, sans-serif; }
-      .card { border-radius: 12px; }
-      .container { 
-        max-width: 600px; /* Limita la larghezza per una migliore leggibilità */
-        margin: 0 auto; 
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      body {
+        padding: 15px;
+        background: #fafafa;
+        font-family: 'Inter', Arial, sans-serif;
+        font-size: 16px;
       }
+
+      .card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+      
+      h4.center-align {
+        font-size: 2.3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+      }
+
+      .card .card-content {
+        padding: 24px;
+      }
+
+      .card .card-title {
+        font-size: 1.8rem;
+        font-weight: 500;
+        margin-bottom: 20px;
+      }
+      
+      /* --- MODIFICHE PER LA GRIGLIA DEI PULSANTI --- */
+
+      /* Contenitore a griglia per i pulsanti */
+      .card-button-grid.row {
+        margin-left: -6px;
+        margin-right: -6px;
+        margin-bottom: -12px; /* Annulla il margine inferiore dell'ultima riga di pulsanti */
+      }
+      
+      /* Colonne che contengono i pulsanti */
+      .card-button-grid .col {
+        padding: 0 6px; /* Spazio laterale (gutter) tra i pulsanti */
+        margin-bottom: 12px; /* Spazio verticale tra le righe di pulsanti */
+      }
+
+      /* Stili per i pulsanti */
+      .card .btn {
+        width: 100%; /* Il pulsante riempie la sua colonna */
+        height: 48px;
+        line-height: 48px;
+        font-size: 1.3rem;
+        text-transform: none;
+        border-radius: 8px;
+      }
+
       /* Stili per il contenitore del form iniettato */
       #popupContainer {
         margin-top: 30px;
@@ -23,46 +71,102 @@
         border: 1px solid #ddd;
         border-radius: 8px;
         padding: 0;
+        background-color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       }
-    </style>
-  </head>
+      /**
+      body.mobile {
+        font-size: 28px;
+      }
 
-  <body>
+      body.mobile .card .btn {
+        height: 54px;
+        line-height: 54px;
+        font-size: 1.4rem;
+      }
+
+      body.mobile h4.center-align {
+        font-size: 2.3rem;
+      }
+
+      body.mobile .card .card-title {
+        font-size: 1.9rem;
+      }
+      **/
+    </style>
+</head>
+
+<body>
     <h4 class="center-align">📒 Registro Scout</h4>
 
     <div class="row">
-      <!-- Sezione Ragazzi -->
-      <div class="col s12 m6 l4">
-        <div class="card blue lighten-4">
-          <div class="card-content">
-            <span class="card-title">Ragazzi</span>
-            <button class="btn waves-effect blue" onclick="openForm('ragazzo')">Aggiungi</button>
-            <button class="btn waves-effect red" onclick="openForm('removeRagazzo')">Rimuovi</button>
-          </div>
+        <!-- Sezione Ragazzi -->
+        <div class="col s12 m12 l4">
+            <div class="card blue lighten-4">
+                <div class="card-content">
+                    <span class="card-title">Reparto</span>
+                    <div class="row card-button-grid">
+                        <div class="col s6"><button class="btn waves-effect blue" onclick="openForm('addRagazzo')">Aggiungi EG</button></div>
+                        <div class="col s6"><button class="btn waves-effect blue" onclick="openForm('addInfoRagazzo')">Aggiungi Info EG</button></div>
+                        <div class="col s6"><button class="btn waves-effect red" onclick="openForm('removeRagazzo')">Rimuovi EG</button></div>
+                        <div class="col s6"><button class="btn waves-effect green" onclick="openForm('addAnno')">Nuovo Anno</button></div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Sezione Progressione -->
-      <div class="col s12 m6 l4">
-        <div class="card teal lighten-4">
-          <div class="card-content">
-            <span class="card-title">Progressione</span>
-            <button class="btn waves-effect teal" onclick="openForm('meta')">Aggiungi Meta</button>
-            <button class="btn waves-effect teal" onclick="openForm('impegno')">Aggiungi Impegno</button>
-          </div>
+        <!-- Sezione Progressione -->
+        <div class="col s12 m12 l4">
+            <div class="card teal lighten-4">
+                <div class="card-content">
+                    <span class="card-title">Progressione</span>
+                    <div class="row card-button-grid">
+                        <div class="col s6"><button class="btn waves-effect teal" onclick="openForm('addMeta')">📍 Aggiungi Meta</button></div>
+                        <div class="col s6"><button class="btn waves-effect teal" onclick="openForm('addImpegno')">📝 Aggiungi Impegno</button></div>
+                        <div class="col s6"><button class="btn waves-effect teal" onclick="openForm('addPP')">🌱 Aggiungi PP</button></div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Sezione Report -->
-      <div class="col s12 m6 l4">
-        <div class="card amber lighten-4">
-          <div class="card-content">
-            <span class="card-title">Report</span>
-            <button class="btn waves-effect amber darken-2" onclick="openForm('reportRagazzo')">Report Ragazzo</button>
-            <button class="btn waves-effect amber darken-2" onclick="openForm('reportConsiglio')">Report Consiglio</button>
-          </div>
+        <!-- Sezione Specialità -->
+        <div class="col s12 m12 l4">
+            <div class="card amber lighten-4">
+                <div class="card-content">
+                    <span class="card-title">Specialità e Brevetti</span>
+                    <div class="row card-button-grid">
+                        <div class="col s6"><button class="btn waves-effect amber darken-2" onclick="openForm('addSpecialita')">⭐ Aggiungi Specialità</button></div>
+                        <div class="col s6"><button class="btn waves-effect amber darken-2" onclick="openForm('addProva')">🧪 Aggiungi Prova</button></div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!-- Sezione Consiglio -->
+        <div class="col s12 m12 l4">
+            <div class="card purple lighten-4">
+                <div class="card-content">
+                    <span class="card-title">CdL e ConCa</span>
+                    <div class="row card-button-grid">
+                        <div class="col s6"><button class="btn waves-effect purple" onclick="openForm('addConsiglio')">🗓️ Aggiungi Consiglio</button></div>
+                        <div class="col s6"><button class="btn waves-effect purple" onclick="openForm('addIntervento')">💬 Aggiungi Intervento</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sezione Report -->
+        <div class="col s12 m12 l4">
+            <div class="card blue-grey lighten-4">
+                <div class="card-content">
+                    <span class="card-title">Report</span>
+                    <div class="row card-button-grid">
+                        <div class="col s6"><button class="btn waves-effect blue-grey" onclick="openForm('reportRagazzo')">📋 Report Ragazzo</button></div>
+                        <div class="col s6"><button class="btn waves-effect blue-grey" onclick="openForm('reportConsiglio')">📋 Report Consiglio</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Contenitore dove verrà iniettato il form -->
@@ -72,65 +176,51 @@
 
     <script>
       /**
+      // Layout e dimensione diverse se telefono o pc
+      document.addEventListener("DOMContentLoaded", function() {
+        const ua = navigator.userAgent.toLowerCase();
+        const isMobile = /iphone|ipad|ipod|android|mobile|windows phone/.test(ua);
+
+        // Applica solo se è un dispositivo mobile reale
+        if (isMobile) {
+          document.body.classList.add("mobile");
+        }
+      });
+      **/
+
+      /**
        * Gestisce il caricamento dinamico del form e l'esecuzione manuale dello script.
        * @param {string} type - Il nome del form da caricare.
        */
       function openForm(type) {
         const popupContainer = document.getElementById('popupContainer');
-        popupContainer.innerHTML = '<p class="center-align" style="padding: 50px;">Caricamento in corso...</p>'; // Loader
+        popupContainer.innerHTML = '<div class="preloader-wrapper big active" style="display:block; margin: 50px auto;"><div class="spinner-layer spinner-blue-only"><div class="circle-clipper left"><div class="circle"></div></div><div class="gap-patch"><div class="circle"></div></div><div class="circle-clipper right"><div class="circle"></div></div></div></div>'; // Loader di Materialize
 
         google.script.run
           .withSuccessHandler(function(result) {
             const popupContainer = document.getElementById('popupContainer');
 
-            // Se il server ritorna l'oggetto { html, js } (nuovo comportamento)
             if (result && typeof result === 'object' && result.html !== undefined) {
               popupContainer.innerHTML = result.html;
 
-              // Esegui il JS restituito creando un tag <script>
               if (result.js) {
                 const scriptEl = document.createElement('script');
                 scriptEl.type = 'text/javascript';
                 scriptEl.textContent = result.js;
-                // appendChild esegue lo script immediatamente
                 document.body.appendChild(scriptEl);
-                // (opzionale) rimuovilo subito dopo l'esecuzione per tenere pulito il DOM
                 setTimeout(() => scriptEl.remove(), 0);
               }
 
-              // 1) re-inizializza componenti Materialize
               if (window.M && typeof window.M.AutoInit === 'function') window.M.AutoInit();
-
-              // 2) se lo script del form definisce una funzione di init, chiamala
               if (typeof window.initForm === 'function') {
-                try { window.initForm(); } catch(e){ console.error('initForm error', e); }
+                try { window.initForm(); } catch (e) { console.error('initForm error', e); }
               }
-              // 3) come fallback, se qualcuno ha assegnato window.onload, chiamalo
               if (typeof window.onload === 'function') {
-                try { window.onload(); } catch(e){ /* ignora */ }
+                try { window.onload(); } catch (e) { /* ignora */ }
               }
               return;
             }
-
-            // --- Compatibilità: se il server tornasse ancora una stringa HTML (vecchio metodo)
-            if (typeof result === 'string') {
-              const scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/i;
-              const match = result.match(scriptRegex);
-              const contentWithoutScript = result.replace(scriptRegex, '');
-              popupContainer.innerHTML = contentWithoutScript;
-              if (match && match[1]) {
-                const scriptEl = document.createElement('script');
-                scriptEl.type = 'text/javascript';
-                scriptEl.textContent = match[1];
-                document.body.appendChild(scriptEl);
-                setTimeout(()=>scriptEl.remove(),0);
-              }
-              if (window.M && typeof window.M.AutoInit === 'function') window.M.AutoInit();
-              if (typeof window.initForm === 'function') { try { window.initForm(); } catch(e){} }
-              if (typeof window.onload === 'function') { try { window.onload(); } catch(e){} }
-              return;
-            }
-
+            
             popupContainer.innerHTML = '<p class="red-text center-align">Risposta non valida dal server.</p>';
           })
           .withFailureHandler(function(err) {
@@ -140,11 +230,11 @@
           .loadForm(type);
 
       }
-      
-      // Inizializza i componenti Materialize all'avvio della Web App
+
       document.addEventListener('DOMContentLoaded', function() {
         M.AutoInit();
       });
     </script>
-  </body>
+</body>
 </html>
+
