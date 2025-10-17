@@ -1598,9 +1598,8 @@ function doGet() {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-// Questa funzione separa l'HTML dal JS e restituisce un oggetto
+// Questa funzione restituisce l'HTML completo di un modulo, script inclusi.
 function loadForm(type) {
-  console.log("Sono in load Form")
   let fileName = '';
   switch (type) {
     case 'addRagazzo': fileName = 'addRagazzo'; break;
@@ -1617,32 +1616,19 @@ function loadForm(type) {
     case 'reportRagazzo': fileName = 'reportRagazzo'; break;
     case 'reportConsiglio': fileName = 'reportConsiglio'; break;
     case 'reportRagazzoDoc': fileName = 'reportRagazzoDoc'; break;
-    default: 
-      console.log("Default error case");
-      return { html: '<p>Modulo non trovato</p>', js: '' };
+    default:
+      return { html: '<p>Modulo non trovato</p>' };
   }
 
   try {
-    console.log("Try di load Form")
-    const rawContent = HtmlService.createTemplateFromFile(fileName).getRawContent();
-    
-    // Espressione regolare per estrarre il contenuto del tag <script>
-    const scriptRegex = /<script>([\s\S]*?)<\/script>/i;
-    const match = rawContent.match(scriptRegex);
-    
-    // Estrae il JS se esiste, altrimenti stringa vuota
-    const js = match ? match[1] : '';
-    // Rimuove il tag <script> dall'HTML
-    const html = rawContent.replace(scriptRegex, '');
-
-    console.log("HTML: ", html)
-    console.log("JS: ", js)
-    
-    return { html: html, js: js };
+    // Valuta il template e restituisce l'HTML completo, script inclusi.
+    // Questo è il modo corretto per assicurarsi che tutto il contenuto venga eseguito.
+    const htmlContent = HtmlService.createTemplateFromFile(fileName).evaluate().getContent();
+    return { html: htmlContent };
 
   } catch (e) {
     Logger.log("Errore in loadForm: " + e.message);
-    return { html: `<p>Errore caricando ${fileName}: ${e.message}</p>`, js: '' };
+    return { html: `<p>Errore caricando ${fileName}: ${e.message}</p>` };
   }
 }
 
