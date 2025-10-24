@@ -1,50 +1,139 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
-  <style>
-    body { font-family: Arial, sans-serif; }
-    form { display: flex; flex-direction: column; gap: 12px; }
-    label { font-weight: bold; }
-    input[type="text"], input[type="number"], input[type="date"], select {
-      width: 100%;
-      padding: 8px;
-      box-sizing: border-box;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-    .button-container { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
-    input[type="button"] {
-      padding: 10px 15px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
-    }
-    input[type="button"]:disabled { background-color: #ddd; }
-    #checkmark { color: green; font-size: 20px; display: none; }
-    
-    /* Stili per il nuovo link */
-    #add-second-incarico-link {
-        color: grey;
-        text-decoration: none;
-        font-size: 0.9em;
-        cursor: pointer;
-        align-self: flex-start;
-        margin-top: -8px; /* Avvicina il link alla select */
-    }
-    #add-second-incarico-link:hover {
-        text-decoration: underline;
-    }
-    #second-incarico-container {
-        display: none; /* Nascosto di default */
-        flex-direction: column;
-        gap: 12px; /* Stesso gap del form */
-    }
-  </style>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            background-color: #f7f7f7;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        label {
+            font-weight: 700;
+            color: #555;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: stretch;
+        }
+
+        input[type="button"] {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            color: white;
+            background-color: #4CAF50;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        input[type="button"]:hover {
+            background-color: #45a049;
+            transform: translateY(-1px);
+        }
+
+        input[type="button"]:active {
+            transform: translateY(0);
+        }
+
+        input[type="button"]:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+
+        #checkmark {
+            color: #4CAF50;
+            font-size: 24px;
+            display: none;
+            text-align: center;
+        }
+
+        .status-message {
+            color: #4CAF50;
+            font-weight: 700;
+            display: none;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        #add-second-incarico-link {
+            color: grey;
+            text-decoration: none;
+            font-size: 0.9em;
+            cursor: pointer;
+            align-self: flex-start;
+            margin-top: -8px;
+        }
+        #add-second-incarico-link:hover {
+            text-decoration: underline;
+        }
+        #second-incarico-container {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+    </style>
 </head>
 <body>
+<div class="container">
   <form id="form">
     <label for="ragazzoInput">Ragazzo:</label>
     <input type="text" id="ragazzoInput" list="ragazziList" placeholder="Digita e seleziona un nome" required>
@@ -55,22 +144,26 @@
     <input type="number" id="anno" name="anno" min="1" max="4">
 
     <label for="tappa">Tappa:</label>
-    <select id="tappa" name="tappa"></select>
+    <input type="text" id="tappa" name="tappa" list="tappaList" placeholder="Digita e seleziona una tappa">
+    <datalist id="tappaList"></datalist>
 
     <label for="squadriglia">Squadriglia:</label>
-    <select id="squadriglia" name="squadriglia"></select>
+    <input type="text" id="squadriglia" name="squadriglia" list="squadrigliaList" placeholder="Digita e seleziona una squadriglia">
+    <datalist id="squadrigliaList"></datalist>
 
     <label for="ruolo">Ruolo:</label>
-    <select id="ruolo" name="ruolo"></select>
+    <input type="text" id="ruolo" name="ruolo" list="ruoloList" placeholder="Digita e seleziona un ruolo">
+    <datalist id="ruoloList"></datalist>
 
     <label for="incarico">Incarico:</label>
-    <select id="incarico" name="incarico"></select>
+    <input type="text" id="incarico" name="incarico" list="incaricoList" placeholder="Digita e seleziona un incarico">
+    <datalist id="incaricoList"></datalist>
     <a id="add-second-incarico-link">+ aggiungi un altro incarico</a>
     
-    <!-- Contenitore per il secondo incarico -->
     <div id="second-incarico-container">
         <label for="incarico2">Secondo Incarico:</label>
-        <select id="incarico2" name="incarico2"></select>
+        <input type="text" id="incarico2" name="incarico2" list="incarico2List" placeholder="Digita e seleziona un incarico">
+        <datalist id="incarico2List"></datalist>
     </div>
 
     <label for="nota">Nota:</label>
@@ -84,43 +177,31 @@
       <span id="checkmark">✔️</span>
     </div>
   </form>
+</div>
 
   <script>
     if (!window._addInfoRagazzoInitialized) {
       window._addInfoRagazzoInitialized = true;
 
       const nameToId_info_ragazzo = {};
-      let allIncarichi_info_ragazzo = []; // Variabile per conservare la lista completa degli incarichi
+      let allIncarichi_info_ragazzo = [];
 
-      // Funzione helper per popolare le select
-      function populateSelect_info_ragazzo(selectId, options, placeholder) {
-        const select = document.getElementById(selectId);
-        select.innerHTML = `<option value="">-- ${placeholder} --</option>`;
+      function populateDatalist_info_ragazzo(datalistId, options) {
+        const datalist = document.getElementById(datalistId);
+        datalist.innerHTML = '';
         options.forEach(optValue => {
           const opt = document.createElement('option');
           opt.value = optValue;
-          opt.textContent = optValue;
-          select.appendChild(opt);
+          datalist.appendChild(opt);
         });
       }
 
-      // Funzione per aggiornare le opzioni del secondo incarico
       function updateSecondIncaricoOptions_info_ragazzo() {
           const firstValue = document.getElementById('incarico').value;
-          const secondSelect = document.getElementById('incarico2');
-          const currentValue = secondSelect.value; // Salva la selezione corrente per ripristinarla se possibile
-
           const availableOptions = allIncarichi_info_ragazzo.filter(opt => opt !== firstValue);
-          populateSelect_info_ragazzo('incarico2', availableOptions, 'Seleziona Incarico');
-
-          // Se la selezione precedente è ancora valida, la ripristina
-          if (availableOptions.includes(currentValue)) {
-              secondSelect.value = currentValue;
-          }
+          populateDatalist_info_ragazzo('incarico2List', availableOptions);
       }
 
-
-      // Carica tutti i dati all'avvio
       window.initForm = function initForm() {
         console.log("Entrato in addInfoRagazzo");
         google.script.run.withSuccessHandler(data => {
@@ -132,30 +213,28 @@
               const opt = document.createElement('option');
               opt.value = fullName;
               datalist.appendChild(opt);
-              nameToId_info_ragazzo[fullName] = row[0]; // Mappa Nome -> ID
+              nameToId_info_ragazzo[fullName] = row[0];
             }
           });
         }).getRagazziList();
 
-        google.script.run.withSuccessHandler(tappe => populateSelect_info_ragazzo('tappa', tappe, 'Seleziona Tappa')).getTappe();
-        google.script.run.withSuccessHandler(squadriglie => populateSelect_info_ragazzo('squadriglia', squadriglie, 'Seleziona Squadriglia')).getSquadriglie();
-        google.script.run.withSuccessHandler(ruoli => populateSelect_info_ragazzo('ruolo', ruoli, 'Seleziona Ruolo')).getRuoli();
+        google.script.run.withSuccessHandler(tappe => populateDatalist_info_ragazzo('tappaList', tappe)).getTappe();
+        google.script.run.withSuccessHandler(squadriglie => populateDatalist_info_ragazzo('squadrigliaList', squadriglie)).getSquadriglie();
+        google.script.run.withSuccessHandler(ruoli => populateDatalist_info_ragazzo('ruoloList', ruoli)).getRuoli();
 
         google.script.run.withSuccessHandler(incarichi => {
-          allIncarichi_info_ragazzo = incarichi; // Salva la lista completa
-          populateSelect_info_ragazzo('incarico', incarichi, 'Seleziona Incarico');
+          allIncarichi_info_ragazzo = incarichi;
+          populateDatalist_info_ragazzo('incaricoList', incarichi);
         }).getIncarichi();
 
-        // Listener per mostrare il secondo campo incarico
         document.getElementById('add-second-incarico-link').addEventListener('click', function(e) {
             e.preventDefault();
             this.style.display = 'none';
             document.getElementById('second-incarico-container').style.display = 'flex';
-            updateSecondIncaricoOptions_info_ragazzo(); // Popola la select quando viene mostrata
+            updateSecondIncaricoOptions_info_ragazzo();
         });
 
-        // Listener per aggiornare il secondo campo quando il primo cambia
-        document.getElementById('incarico').addEventListener('change', updateSecondIncaricoOptions_info_ragazzo);
+        document.getElementById('incarico').addEventListener('input', updateSecondIncaricoOptions_info_ragazzo);
       }
 
       if (document.readyState === 'loading') {
